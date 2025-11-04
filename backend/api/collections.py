@@ -22,14 +22,14 @@ def token_required(f):
         if not auth_header or not auth_header.startswith('Bearer '):
             return jsonify({"error": "Unauthorized access: Missing or invalid Authorization header."}), 401
         
-        token = auth_header.split(' ')[1].strip() # Clean the token string
+        token = auth_header.split(' ')[1].strip()  # Clean the token string
         
         # FIX: Load the PUBLIC Key string for verification (ECC compatibility)
-        #print(repr(os.getenv("SUPABASE_JWT_PEM")[:80]))
-        #SUPABASE_PUBLIC_KEY = os.getenv('SUPABASE_PUBLIC_KEY_PEM').replace("\\\\n", "\n")
-        #print(repr(SUPABASE_PUBLIC_KEY))
-        #SUPABASE_PUBLIC_KEY = os.getenv('SUPABASE_JWT_PEM').replace("\\\\n", "\n")
-        #print(repr(SUPABASE_PUBLIC_KEY[:80]))
+        # print(repr(os.getenv("SUPABASE_JWT_PEM")[:80]))
+        # SUPABASE_PUBLIC_KEY = os.getenv('SUPABASE_PUBLIC_KEY_PEM').replace("\\\\n", "\n")
+        # print(repr(SUPABASE_PUBLIC_KEY))
+        # SUPABASE_PUBLIC_KEY = os.getenv('SUPABASE_JWT_PEM').replace("\\\\n", "\n")
+        # print(repr(os.getenv("SUPABASE_JWT_PEM")[:80]))
 
         x_b64 = os.getenv("SUPABASE_JWT_X")
         y_b64 = os.getenv("SUPABASE_JWT_Y")
