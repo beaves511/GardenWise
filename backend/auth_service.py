@@ -49,7 +49,7 @@ def create_user_profile_record(user_id: str, email: str):
         return True
 
     except requests.exceptions.RequestException as e:
-        print(f"NETWORK ERROR: Profile creation failed. {e}")
+        print(f"Profile creation failed. {e}")
         return False
 
 
