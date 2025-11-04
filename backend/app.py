@@ -13,7 +13,7 @@ try:
     AUTH_BP_LOADED = True
 except ImportError as e:
     AUTH_BP_LOADED = False
-    print(f"CRITICAL INIT ERROR: Auth Blueprint failed to import. Details: {e}")
+    print(f"Auth Blueprint failed to import. Details: {e}")
     # Define a dummy Blueprint to prevent app crash
     auth_bp = Blueprint('auth', __name__)
 
@@ -23,8 +23,8 @@ try:
 except ImportError as e:
     DB_SERVICE_LOADED = False
     print("-" * 60)
-    print(f"CRITICAL INIT ERROR: DB Service 'db_service.py' failed to import. Details: {e}")
-    print("POSSIBLE FIX: Check file name and ensure 'supabase' module is installed.")
+    print(f"DB Service 'db_service.py' failed to import. Details: {e}")
+    print("Check file name and ensure 'supabase' module is installed.")
     print("-" * 60)
 
 # Import the Plant Service (assuming it's a neighbor for simplicity)
@@ -33,7 +33,7 @@ try:
     PLANTS_BP_LOADED = True
 except ImportError as e:
     PLANTS_BP_LOADED = False
-    print(f"CRITICAL INIT ERROR: Plants Blueprint failed to import. Details: {e}")
+    print(f"Plants Blueprint failed to import. Details: {e}")
     plants_bp = Blueprint('plants', __name__)
 
 try:
@@ -41,7 +41,7 @@ try:
     COLLECTIONS_BP_LOADED = True
 except ImportError as e:
     COLLECTIONS_BP_LOADED = False
-    print(f"CRITICAL INIT ERROR: Collections Blueprint failed to import. Details: {e}")
+    print(f"Collections Blueprint failed to import. Details: {e}")
     collections_bp = Blueprint('collections', __name__)
 
 # Initialize Flask App
@@ -52,35 +52,36 @@ CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
 
 # --- BLUEPRINT REGISTRATION (The critical step for the 404 fix) ---
 
-# The plants route is registered here for now, even though it's defined directly below.
-# We keep the plant_details function defined below but register the auth_bp now.
+# The plants route is registered here for now
+# keep the plant_details function defined below but register the auth_bp now.
 if AUTH_BP_LOADED:
     # Registers all routes defined in api/auth.py (e.g., /auth/login)
     # under the global prefix /api/v1, making the full URL: /api/v1/auth/login
     app.register_blueprint(auth_bp, url_prefix='/api/v1')
 else:
-    print("WARNING: Auth Blueprint not loaded. Authentication endpoints are unavailable.")
+    print("Auth Blueprint not loaded. Endpoints unavailable.")
 
 if COLLECTIONS_BP_LOADED:
     app.register_blueprint(collections_bp, url_prefix='/api/v1')
 else:
-    print("WARNING: Collections Blueprint not loaded. Collection endpoints are unavailable.")
+    print("Collections Blueprint not loaded. Endpoints unavailable.")
 
 if PLANTS_BP_LOADED:
     app.register_blueprint(plants_bp, url_prefix='/api/v1')
 else:
-    print("WARNING: Plants Blueprint not loaded. Plant endpoints are unavailable.")
+    print("Plants Blueprint not loaded. Plant endpoints are unavailable.")
 
 
 @app.route('/api/v1/test-db', methods=['POST'])
 def test_db_insert():
     """Tests the database connection by inserting a hardcoded record."""
     if not DB_SERVICE_LOADED:
-        return jsonify({"status": "error", "message": "Database Service failed to load."}), 500
-    
+        return jsonify({"status": "error", "message": "Database "
+        "Service failed to load."}), 500
+
     # Hardcoded dummy data to ensure the database can be written to
     dummy_user_id = "TEST_USER_ID"
-    
+
     # You can change the data payload to test different insertions
     data = request.get_json()
     plant_data = data.get('plant_data')
@@ -89,7 +90,7 @@ def test_db_insert():
     if not plant_data:
          plant_data = {"common_name": "Hardcoded Test Plant", "scientific_name": "Debug Example"}
 
-    print(f"--- DB TEST HIT --- Attempting to save record for User: {dummy_user_id}")
+    print(f"Attempting to save record for User: {dummy_user_id}")
 
     try:
         result = db_service.save_plant_to_collection(dummy_user_id, plant_data, collection_name)
@@ -115,7 +116,7 @@ def index():
         "/api/v1/auth/login (POST)"
     ]
     return jsonify({
-        "status": "ok", 
+        "status": "ok",
         "message": "Welcome to the Gardening App API!",
         "version": "v1",
         "endpoints": available_routes
