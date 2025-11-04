@@ -72,7 +72,7 @@ def token_required(f):
             # Catches other generic JWT errors (e.g., malformed token)
             print(f"JWT Decode Error: {e}")
             return jsonify({"error": "Authentication failed "
-                    "(malformed token)."}, 401), 401
+                        "(malformed token)."}, 401), 401
         except Exception as e:
             # Catches final unknown errors (e.g., bad key format)
             print(f"General Auth Error: {e}")
