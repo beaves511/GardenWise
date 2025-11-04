@@ -58,7 +58,7 @@ def token_required(f):
                 audience="authenticated"
             )
         try:
-            # 3. Attach the user_id (the 'sub' claim in Supabase tokens) 
+            # 3. Attach the user_id (the 'sub' claim in Supabase tokens)
             # to the request object
             request.user_id = data.get('sub')
 
@@ -72,7 +72,7 @@ def token_required(f):
             # Catches other generic JWT errors (e.g., malformed token)
             print(f"JWT Decode Error: {e}")
             return jsonify({"error": "Authentication failed "
-            "(malformed token)."}, 401), 401
+                "(malformed token)."}, 401), 401
         except Exception as e:
             # Catches final unknown errors (e.g., bad key format)
             print(f"General Auth Error: {e}")
@@ -97,10 +97,14 @@ def add_to_collection():
 
     if not plant_data or not isinstance(plant_data, dict):
         return jsonify({"error": "Missing or invalid plant_data "
-        "in request body."}), 400
+            "in request body."}), 400
 
     # Delegate to the Database Service Layer
-    result = db_service.save_plant_to_collection(user_id, plant_data, collection_name)
+    result = db_service.save_plant_to_collection(
+        user_id,
+        plant_data,
+        collection_name
+    )
 
     if result['status'] == 'success':
         return jsonify(result), 200
@@ -132,19 +136,18 @@ def get_user_collections_route():
         return jsonify({"status": "error", "message": result['message']}), 500
 
     except Exception as e:
-        # CRASH FIX: Catches the crash if db_service failed to initialize or execute query
         print(f"Database GET Crash: {e}")
         return jsonify({"status": "error", "message": "Failed to retrieve "
-        "collections due to server error."}), 500
+            "collections due to server error."}), 500
 
 
 @collections_bp.route('/collections/create', methods=['POST'])
 @token_required
 def create_collection_route():
     """
-    Creates a new, empty collection by 
+    Creates a new, empty collection by
     inserting a minimal sentinel record.
-    Requires: Valid JWT, JSON body with 
+    Requires: Valid JWT, JSON body with
     collection_name.
     """
     data = request.get_json()
@@ -152,9 +155,9 @@ def create_collection_route():
 
     if not collection_name:
         return jsonify({"error": "Missing collection_name"
-        " in request body."}), 400
+            " in request body."}), 400
 
-    user_id = request.user_id # Guaranteed by @token_required
+    user_id = request.user_id  # Guaranteed by @token_required
 
     try:
         # Call the new function from db_service to insert the sentinel record
@@ -164,22 +167,25 @@ def create_collection_route():
             # Returns success message to the frontend modal
             return jsonify(result), 200
 
-        # Handle the specific error code from db_service for duplicate collection names
+        # Handle the specific error code from db_service 
+        # for duplicate collection names
         if result.get('code') == '23505':
-            return jsonify({"status": "error", "message": "A collection with this name already exists."}), 409
+            return jsonify({"status": "error", "message": "A collection with "
+                "this name already exists."}), 409
 
         return jsonify(result), 500
 
     except Exception as e:
         print(f"Server-side exception during Create Collection: {e}")
         return jsonify({"status": "error", "message": "Failed "
-        "to create collection due to server error."}), 500
+            "to create collection due to server error."}), 500
+
 
 @collections_bp.route('/collections/container/<collection_name>', methods=['DELETE'])
 @token_required
 def delete_collection_container_route(collection_name):
     """
-    Deletes the parent collection container and 
+    Deletes the parent collection container and
     all associated plants via CASCADE.
     """
     user_id = request.user_id
@@ -201,7 +207,7 @@ def delete_collection_container_route(collection_name):
     except Exception as e:
         print(f"Collection Container DELETE Crash: {e}")
         return jsonify({"status": "error", "message": "Failed to delete collection"
-        " container due to server error."}), 500
+            " container due to server error."}), 500
 
 
 @collections_bp.route('/collections/<string:plant_id>', methods=['DELETE'])
