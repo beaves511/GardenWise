@@ -20,23 +20,25 @@ def public_plant_search():
         return jsonify({"message": "Missing 'name' query parameter."}), 400
 
     print(f"--- PUBLIC SEARCH HIT --- Searching for: '{plant_name}'")
-    
+
     # Check if the service layer is available (assuming plant_service loads)
     if 'fetch_and_cache_plant_details' not in globals():
-        return jsonify({"message": "Server Initialization Error: Plant service is not running."}), 500
+        return jsonify({"message": "Server Initialization Error: Plant "
+                        "service is not running."}), 500
 
     try:
         # Call the external service layer to get the data list
-        # NOTE: This function now handles returning a list of results based on the search query.
         data = fetch_and_cache_plant_details(plant_name)
 
         if data:
             return jsonify(data), 200
 
         # If the service returns None or an empty list
-        return jsonify({"message": f"Plant '{plant_name}' not found in any database."}), 404
+        return jsonify({"message":
+                        f"Plant '{plant_name}' not found in any database."}), 404
 
     except Exception as e:
         # Catch unexpected errors during service execution
         print(f"Server-side exception during public plant search: {e}")
-        return jsonify({"message": "Internal Server Error during search."}), 500
+        return jsonify({"message": "Internal Server "
+                        "Error during search."}), 500
