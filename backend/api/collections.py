@@ -205,13 +205,18 @@ def delete_collection_container_route(collection_name):
                 isinstance(result.get('data'), list)
                 and len(result['data']) > 0
             ):
-                return jsonify({"status": "success", "message":f"Collection '{collection_name}' and associated plants deleted."}), 200
+                return jsonify({"status": "success",
+                                "message": (
+                                f"Collection '{collection_name}' and "
+                                "associated plants deleted."
+                                )
+                }), 200
             else:
                 return jsonify({"status": "error",
                                 "message": (
-                    f"Collection '{collection_name}' not found for user, "
-                    "or no records deleted."
-                    )
+                                f"Collection '{collection_name}' not found for user, "
+                                "or no records deleted."
+                                )
                 }), 404
 
         # If the result status was 'error', return it directly
