@@ -16,7 +16,6 @@ const GREEN_LIGHTEST = '#F0FFF4';
 const RED_ERROR = '#EF4444';
 const GRAY_TEXT_DARK = '#374151';
 const GRAY_HOVER = '#F5F5F5'; 
-const GRAY_LIGHT = '#F9FAFB'; 
 
 // --- HELPER FUNCTION: Robust Data Check ---
 const isDataPresent = (value) => {

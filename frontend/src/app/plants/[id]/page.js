@@ -1,4 +1,4 @@
-"use client"; // Marks this as a client component to use hooks
+"use client"; // Marks this as a client cmponent to use hooks
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -249,7 +249,7 @@ export default function PlantDetailPage() {
 
     // --- RENDERING LOGIC ---
 
-    if (loading) return <p style={{ textAlign: 'center', padding: '50px', fontSize: '1.2em' }}>Searching the database for '{plantName}'... 🪴</p>;
+    if (loading) return <p style={{ textAlign: 'center', padding: '50px', fontSize: '1.2em' }}>Searching the database for {plantName}... 🪴</p>;
     
     if (error) return (
         <div style={styles.card}>
@@ -267,7 +267,7 @@ export default function PlantDetailPage() {
 
     // --- RENDERING LOGIC ---
 
-    if (loading) return <p style={{ textAlign: 'center', padding: '50px', fontSize: '1.2em' }}>Searching the database for '{plantName}'... 🪴</p>;
+    if (loading) return <p style={{ textAlign: 'center', padding: '50px', fontSize: '1.2em' }}>Searching the database for {plantName}... 🪴</p>;
     
     if (error) return (
         <div style={styles.card}>
@@ -282,7 +282,7 @@ export default function PlantDetailPage() {
         </div>
     );
     
-    if (!plant) return <p style={{ textAlign: 'center', padding: '50px' }}>Plant data not available for '{plantName}'.</p>;
+    if (!plant) return <p style={{ textAlign: 'center', padding: '50px' }}>Plant data not available for {plantName}.</p>;
     
     const pageTitle = `${plant.common_name} Care Guide | GardenWise`;
 
