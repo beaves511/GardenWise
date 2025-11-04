@@ -210,20 +210,21 @@ def delete_collection_container_route(collection_name):
                                     f"Collection '{collection_name}' and "
                                     "associated plants deleted."
                                 )
-                            }), 200
+                                }), 200
             else:
                 return jsonify({"status": "error",
                                 "message": (
-                                    f"Collection '{collection_name}' not found for "
-                                      "user, or no records deleted."
+                                    f"Collection '{collection_name}' not found"
+                                    " for user, or no records deleted."
                                 )
-                            }), 404
+                                }), 404
 
         # If the result status was 'error', return it directly
         return jsonify(result), 500
     except Exception as e:
         print(f"Collection Container DELETE Crash: {e}")
-        return jsonify({"status": "error", "message": "Failed to delete collection"
+        return jsonify({"status": "error", "message": "Failed to "
+                        "delete collection"
                         " container due to server error."}), 500
 
 
