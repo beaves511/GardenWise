@@ -245,15 +245,21 @@ def delete_from_collection_route(plant_id):
             return jsonify({"error": "Missing plant ID in path."}), 400
 
         # Delegate to the Database Service Layer
-        # The service layer must ensure the user_id matches the record owner (RLS is also doing this)
+        # The service layer must ensure the user_id matches record owner
         result = db_service.delete_plant_record(user_id, plant_id)
 
         if result['status'] == 'success':
-            return jsonify({"status": "success", "message": f"Plant {plant_id} deleted successfully."}), 200
+            return jsonify({"status": "success",
+                            "message": (
+                                f"Plant {plant_id} deleted successfully."
+                                )
+                                }), 200
         else:
             # If the plant wasn't found or delete failed
             return jsonify(result), 404
 
     except Exception as e:
         print(f"Database DELETE Crash: {e}")
-        return jsonify({"status": "error", "message": "Failed to delete plant due to server error."}), 500
+        return jsonify({"status": "error",
+                        "message": "Failed to delete plant "
+                        "due to server error."}), 500
