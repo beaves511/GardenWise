@@ -112,7 +112,6 @@ export const useCollections = () => {
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 
 const COLLECTIONS_API_URL = 'http://localhost:5000/api/v1/collections';
 
@@ -125,7 +124,6 @@ export const useCollections = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [userId, setUserId] = useState(null);
-    const router = useRouter();
 
     // Use a state variable to force a refresh of the data
     const [refreshTrigger, setRefreshTrigger] = useState(0); 
@@ -225,7 +223,7 @@ export const useCollections = () => {
                 try {
                     const errorData = await response.json();
                     errorDetails = errorData.message || `API Error (Status ${response.status}).`;
-                } catch (jsonError) {
+                } catch {
                     errorDetails = `Server returned status ${response.status}. Failed to parse response.`;
                 }
                 throw new Error(`Failed to load collections: ${errorDetails}`);

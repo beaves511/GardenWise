@@ -2,6 +2,7 @@
 
 import { useCollections } from '../hooks/useCollections';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { LuDroplet, LuSun, LuSettings, LuTrash2, LuPencil, LuArchive, LuImageOff, LuX } from 'react-icons/lu'; 
 import { useState, useEffect, useRef } from 'react';
 
@@ -233,7 +234,7 @@ export default function CollectionsPage() {
 
             {collectionNames.length === 0 ? (
                 <div style={styles.emptyState}>
-                    <p>You haven't saved any plants yet. Start building your garden!</p>
+                    <p>You haven&apos;t saved any plants yet. Start building your garden!</p>
                     <button onClick={() => router.push('/')} style={styles.searchButton}>
                         Start Exploring Plants
                     </button>
@@ -424,9 +425,11 @@ const CollectionCard = ({ name, plants, router, onDelete, onDeleteCollection }) 
                 <div style={styles.itemSectionNameMerged}>
                     
                     {imageUrl ? (
-                        <img 
+                        <Image 
                             src={imageUrl} 
                             alt={common_name} 
+                            width={45} 
+                            height={45} 
                             style={styles.plantImage} 
                             onError={(e) => e.target.src = previewImage} 
                         />

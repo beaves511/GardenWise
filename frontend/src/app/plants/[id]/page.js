@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 // FIX: Reverting to LuAlertTriangle, which is the standard name, to resolve the export conflict.
 import { LuLeaf, LuSun, LuThermometer, LuHeart, LuTriangleAlert } from 'react-icons/lu'; // Icons
 
@@ -12,7 +13,6 @@ const GRAY_TEXT = '#4B5563';
 const GRAY_BORDER = '#D1D5DB';
 const RED_ALERT = '#EF4444';
 const GREEN_LIGHT = '#D1FAE5'; // Assuming this was the definition from index.js
-const YELLOW_WARN = '#FBBF24';
 
 const styles = {
     card: {
@@ -163,7 +163,6 @@ export default function PlantDetailPage() {
     // --- EFFECT: INITIAL DATA FETCH ---
     useEffect(() => {
         // Check for local storage token on load
-        const token = localStorage.getItem('supabase.token');
         const uid = localStorage.getItem('supabase.userId');
         if (uid) setUserId(uid);
         
@@ -250,7 +249,7 @@ export default function PlantDetailPage() {
 
     // --- RENDERING LOGIC ---
 
-    if (loading) return <p style={{ textAlign: 'center', padding: '50px', fontSize: '1.2em' }}>Searching the database for "{plantName}"... 🪴</p>;
+    if (loading) return <p style={{ textAlign: 'center', padding: '50px', fontSize: '1.2em' }}>Searching the database for '{plantName}'... 🪴</p>;
     
     if (error) return (
         <div style={styles.card}>
@@ -260,7 +259,7 @@ export default function PlantDetailPage() {
                 <p style={{ margin: 0 }}>Error: {error}</p>
             </div>
             <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                <a href="/" style={{ color: GREEN_PRIMARY, textDecoration: 'none' }}>← Try a different search</a>
+                <Link href="/" style={{ color: GREEN_PRIMARY, textDecoration: 'none' }}>← Try a different search</Link>
             </div>
         </div>
     );
@@ -268,7 +267,7 @@ export default function PlantDetailPage() {
 
     // --- RENDERING LOGIC ---
 
-    if (loading) return <p style={{ textAlign: 'center', padding: '50px', fontSize: '1.2em' }}>Searching the database for "{plantName}"... 🪴</p>;
+    if (loading) return <p style={{ textAlign: 'center', padding: '50px', fontSize: '1.2em' }}>Searching the database for '{plantName}'... 🪴</p>;
     
     if (error) return (
         <div style={styles.card}>
@@ -278,12 +277,12 @@ export default function PlantDetailPage() {
                 <p style={{ margin: 0 }}>Error: {error}</p>
             </div>
             <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                <a href="/" style={{ color: GREEN_PRIMARY, textDecoration: 'none' }}>← Try a different search</a>
+                <Link href="/" style={{ color: GREEN_PRIMARY, textDecoration: 'none' }}>← Try a different search</Link>
             </div>
         </div>
     );
     
-    if (!plant) return <p style={{ textAlign: 'center', padding: '50px' }}>Plant data not available for "{plantName}".</p>;
+    if (!plant) return <p style={{ textAlign: 'center', padding: '50px' }}>Plant data not available for '{plantName}'.</p>;
     
     const pageTitle = `${plant.common_name} Care Guide | GardenWise`;
 

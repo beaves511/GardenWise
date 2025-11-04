@@ -116,7 +116,7 @@ export default function AuthPage() {
                 </form>
 
                 <div style={styles.toggleText}>
-                    {isLoginMode ? "Don't have an account?" : "Already have an account?"}
+                    {isLoginMode ? "Don&apos;t have an account?" : "Already have an account?"}
                     {/* FIX: This button now calls the local toggle function */}
                     <button onClick={toggleMode} style={styles.toggleButton} disabled={isLoading}>
                         {otherMode}

@@ -391,7 +391,7 @@ export default function RootLayout({ children }) {
         return () => {
             window.removeEventListener('storageChange', checkAuthStatus);
         };
-    }, []); // <-- FIX: Set dependency array back to [] to suppress warning
+    }, [checkAuthStatus]); // <-- FIX: Set dependency array back to [] to suppress warning
 
     const handleSignOut = () => {
         localStorage.removeItem('supabase.token');
