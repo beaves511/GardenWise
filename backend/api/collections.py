@@ -253,7 +253,7 @@ def delete_from_collection_route(plant_id):
                             "message": (
                                 f"Plant {plant_id} deleted successfully."
                                 )
-                                }), 200
+                            }), 200
         else:
             # If the plant wasn't found or delete failed
             return jsonify(result), 404

@@ -1,9 +1,9 @@
 from flask import Flask, jsonify, request, Blueprint
 from flask_cors import CORS
 # Import standard libraries for error checking
-import os 
-from dotenv import load_dotenv
-import sys  
+# import os
+# from dotenv import load_dotenv
+# import sys
 
 # --- IMPORT BLUEPRINTS AND SERVICES ---
 # Import the Auth Blueprint (Controller) we just created
@@ -15,7 +15,7 @@ except ImportError as e:
     AUTH_BP_LOADED = False
     print(f"CRITICAL INIT ERROR: Auth Blueprint failed to import. Details: {e}")
     # Define a dummy Blueprint to prevent app crash
-    auth_bp = Blueprint('auth', __name__) 
+    auth_bp = Blueprint('auth', __name__)
 
 try:
     import db_service
@@ -55,7 +55,7 @@ CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
 # The plants route is registered here for now, even though it's defined directly below.
 # We keep the plant_details function defined below but register the auth_bp now.
 if AUTH_BP_LOADED:
-    # Registers all routes defined in api/auth.py (e.g., /auth/login) 
+    # Registers all routes defined in api/auth.py (e.g., /auth/login)
     # under the global prefix /api/v1, making the full URL: /api/v1/auth/login
     app.register_blueprint(auth_bp, url_prefix='/api/v1')
 else:
@@ -72,36 +72,6 @@ else:
     print("WARNING: Plants Blueprint not loaded. Plant endpoints are unavailable.")
 
 
-# --- ROUTE DEFINITION (Legacy Plant Route, remains in app.py for simplicity) ---
-'''
-@app.route('/api/v1/plants', methods=['GET'])
-def plant_details():
-    """
-    Handles GET requests for plant details by reading the 'name' query parameter.
-    e.g., /api/v1/plants?name=Fern
-    """
-    plant_name = request.args.get('name')
-    
-    if not plant_name:
-        return jsonify({"message": "Missing 'name' query parameter. Use /api/v1/plants?name=... "}), 400
-
-    print(f"--- ROUTE HIT --- Flask retrieved plant_name from query: '{plant_name}'") 
-    
-    if not SERVICE_LOADED:
-        return jsonify({"message": "Server Initialization Error: Plant service is not running."}), 500
-
-    try:
-        data = fetch_and_cache_plant_details(plant_name)
-        
-        if data:
-            return jsonify(data), 200
-        
-        return jsonify({"message": f"Plant '{plant_name}' not found."}), 404
-        
-    except Exception as e:
-        print(f"Server-side exception during API call: {e}")
-        return jsonify({"message": "Internal Server Error"}), 500
-        '''
 @app.route('/api/v1/test-db', methods=['POST'])
 def test_db_insert():
     """Tests the database connection by inserting a hardcoded record."""
