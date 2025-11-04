@@ -1,11 +1,12 @@
 from flask import Blueprint, request, jsonify
 import jwt
 import os
-import db_service 
+import db_service
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import serialization
 import base64
 import functools # <-- NEW IMPORT
+
 
 # Create the Blueprint for collection routes
 collections_bp = Blueprint('collections', __name__)
@@ -13,8 +14,7 @@ collections_bp = Blueprint('collections', __name__)
 def token_required(f):
     """
     Decorator to verify the JWT token using the Supabase PUBLIC KEY 
-    and extract the user ID. This is the fix for the 401 error caused by the ECC key.
-    """
+    and extract the user ID. This is the fix for the 401 error caused by the ECC key.    """
     @functools.wraps(f)
     def decorated(*args, **kwargs):
         # 1. Get the Authorization header and extract the token

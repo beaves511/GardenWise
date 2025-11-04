@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
-# FIX: Change import to reference the auth_service module, 
+# FIX: Change import to reference the auth_service module,
 # assuming it is available in the Python path (e.g., neighbor of app.py)
-import auth_service 
+import auth_service
 
 # Create the Blueprint
 auth_bp = Blueprint('auth', __name__)
@@ -19,6 +19,7 @@ def signup_route():
     # Delegate to the Service Layer using the module reference
     response, status = auth_service.sign_up(email, password)
     return jsonify(response), status
+
 
 @auth_bp.route('/auth/login', methods=['POST'])
 def login_route():
