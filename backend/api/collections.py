@@ -97,7 +97,7 @@ def add_to_collection():
 
     if not plant_data or not isinstance(plant_data, dict):
         return jsonify({"error": "Missing or invalid plant_data "
-            "in request body."}), 400
+                        "in request body."}), 400
 
     # Delegate to the Database Service Layer
     result = db_service.save_plant_to_collection(
@@ -138,7 +138,7 @@ def get_user_collections_route():
     except Exception as e:
         print(f"Database GET Crash: {e}")
         return jsonify({"status": "error", "message": "Failed to retrieve "
-            "collections due to server error."}), 500
+                        "collections due to server error."}), 500
 
 
 @collections_bp.route('/collections/create', methods=['POST'])
@@ -155,7 +155,7 @@ def create_collection_route():
 
     if not collection_name:
         return jsonify({"error": "Missing collection_name"
-            " in request body."}), 400
+                        " in request body."}), 400
 
     user_id = request.user_id  # Guaranteed by @token_required
 
@@ -167,21 +167,24 @@ def create_collection_route():
             # Returns success message to the frontend modal
             return jsonify(result), 200
 
-        # Handle the specific error code from db_service 
+        # Handle the specific error code from db_service
         # for duplicate collection names
         if result.get('code') == '23505':
             return jsonify({"status": "error", "message": "A collection with "
-                "this name already exists."}), 409
+                            "this name already exists."}), 409
 
         return jsonify(result), 500
 
     except Exception as e:
         print(f"Server-side exception during Create Collection: {e}")
         return jsonify({"status": "error", "message": "Failed "
-            "to create collection due to server error."}), 500
+                        "to create collection due to server error."}), 500
 
 
-@collections_bp.route('/collections/container/<collection_name>', methods=['DELETE'])
+@collections_bp.route(
+        '/collections/container/<collection_name>',
+        methods=['DELETE']
+)
 @token_required
 def delete_collection_container_route(collection_name):
     """
@@ -192,18 +195,21 @@ def delete_collection_container_route(collection_name):
 
     try:
         # Calls the service function to delete the container
-        result = db_service.delete_collection_container(user_id, collection_name)
+        result = db_service.delete_collection_container(
+            user_id,
+            collection_name
+        )
 
         if result['status'] == 'success':
-            # CRITICAL FIX: Check the length of the 'data' list instead of using .get('count')
             if isinstance(result.get('data'), list) and len(result['data']) > 0:
-                return jsonify({"status": "success", "message": f"Collection '{collection_name}' and associated plants deleted."}), 200
+                return jsonify({"status": "success", "message": 
+                                f"Collection '{collection_name}' and associated plants deleted."}), 200
             else:
-                 # Handles case where collection name was valid but container not found for user (0 rows deleted)
-                return jsonify({"status": "error", "message": f"Collection '{collection_name}' not found for user, or no records deleted."}), 404
+                return jsonify({"status": "error", "message": 
+                                f"Collection '{collection_name}' not found for user, or no records deleted."}), 404
 
         # If the result status was 'error', return it directly
-        return jsonify(result), 500 
+        return jsonify(result), 500
     except Exception as e:
         print(f"Collection Container DELETE Crash: {e}")
         return jsonify({"status": "error", "message": "Failed to delete collection"
