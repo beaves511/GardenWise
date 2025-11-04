@@ -24,11 +24,11 @@ def token_required(f):
         auth_header = request.headers.get('Authorization')
         if not auth_header or not auth_header.startswith('Bearer '):
             return jsonify({
-                "error": "Unauthorized access: Missing or invalid Authorization header."
+                "error": "Unauthorized access: "
+                "Missing or invalid Authorization header."
                 }), 401
 
         token = auth_header.split(' ')[1].strip()  # Clean the token string
-
 
         x_b64 = os.getenv("SUPABASE_JWT_X")
         y_b64 = os.getenv("SUPABASE_JWT_Y")
@@ -51,7 +51,6 @@ def token_required(f):
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         ).decode()
 
-
         data = jwt.decode(
                 token,
                 pem,
@@ -59,7 +58,8 @@ def token_required(f):
                 audience="authenticated"
             )
         try:
-            # 3. Attach the user_id (the 'sub' claim in Supabase tokens) to the request object
+            # 3. Attach the user_id (the 'sub' claim in Supabase tokens) 
+            # to the request object
             request.user_id = data.get('sub')
 
         except jwt.InvalidSignatureError:
@@ -71,7 +71,8 @@ def token_required(f):
         except jwt.InvalidTokenError as e:
             # Catches other generic JWT errors (e.g., malformed token)
             print(f"JWT Decode Error: {e}")
-            return jsonify({"error": "Authentication failed (malformed token)."}, 401), 401
+            return jsonify({"error": "Authentication failed "
+            "(malformed token)."}, 401), 401
         except Exception as e:
             # Catches final unknown errors (e.g., bad key format)
             print(f"General Auth Error: {e}")
@@ -79,6 +80,7 @@ def token_required(f):
 
         return f(*args, **kwargs)
     return decorated
+
 
 @collections_bp.route('/collections', methods=['POST'])
 @token_required
@@ -91,10 +93,11 @@ def add_to_collection():
     user_id = request.user_id  # Set by the @token_required decorator
     data = request.get_json()
     plant_data = data.get('plant_data')
-    collection_name = data.get('collection_name', 'Default')  # Default to 'Default' collection
+    collection_name = data.get('collection_name', 'Default')
 
     if not plant_data or not isinstance(plant_data, dict):
-        return jsonify({"error": "Missing or invalid plant_data in request body."}), 400
+        return jsonify({"error": "Missing or invalid plant_data "
+        "in request body."}), 400
 
     # Delegate to the Database Service Layer
     result = db_service.save_plant_to_collection(user_id, plant_data, collection_name)
@@ -104,18 +107,20 @@ def add_to_collection():
     else:
         return jsonify(result), 500
 
+
 @collections_bp.route('/collections', methods=['GET'])
 @token_required
 def get_user_collections_route():
     """
-    Retrieves all collections for the authenticated user. (GET method)
+    Retrieves all collections for the
+    authenticated user. (GET method)
     """
     user_id = request.user_id
 
     try:
         # Delegate to the Database Service Layer
         result = db_service.get_user_collections(user_id)
-        
+
         if result['status'] == 'success':
             return jsonify(result['data']), 200
 
@@ -129,21 +134,25 @@ def get_user_collections_route():
     except Exception as e:
         # CRASH FIX: Catches the crash if db_service failed to initialize or execute query
         print(f"Database GET Crash: {e}")
-        return jsonify({"status": "error", "message": "Failed to retrieve collections due to server error."}), 500
+        return jsonify({"status": "error", "message": "Failed to retrieve "
+        "collections due to server error."}), 500
 
 
 @collections_bp.route('/collections/create', methods=['POST'])
 @token_required
 def create_collection_route():
     """
-    Creates a new, empty collection by inserting a minimal sentinel record.
-    Requires: Valid JWT, JSON body with collection_name.
+    Creates a new, empty collection by 
+    inserting a minimal sentinel record.
+    Requires: Valid JWT, JSON body with 
+    collection_name.
     """
     data = request.get_json()
     collection_name = data.get('collection_name')
 
     if not collection_name:
-        return jsonify({"error": "Missing collection_name in request body."}), 400
+        return jsonify({"error": "Missing collection_name"
+        " in request body."}), 400
 
     user_id = request.user_id # Guaranteed by @token_required
 
@@ -163,13 +172,15 @@ def create_collection_route():
 
     except Exception as e:
         print(f"Server-side exception during Create Collection: {e}")
-        return jsonify({"status": "error", "message": "Failed to create collection due to server error."}), 500
+        return jsonify({"status": "error", "message": "Failed "
+        "to create collection due to server error."}), 500
 
 @collections_bp.route('/collections/container/<collection_name>', methods=['DELETE'])
 @token_required
 def delete_collection_container_route(collection_name):
     """
-    Deletes the parent collection container and all associated plants via CASCADE.
+    Deletes the parent collection container and 
+    all associated plants via CASCADE.
     """
     user_id = request.user_id
 
@@ -189,14 +200,16 @@ def delete_collection_container_route(collection_name):
         return jsonify(result), 500 
     except Exception as e:
         print(f"Collection Container DELETE Crash: {e}")
-        return jsonify({"status": "error", "message": "Failed to delete collection container due to server error."}), 500
+        return jsonify({"status": "error", "message": "Failed to delete collection"
+        " container due to server error."}), 500
 
 
 @collections_bp.route('/collections/<string:plant_id>', methods=['DELETE'])
 @token_required
 def delete_from_collection_route(plant_id):
     """
-    Deletes a single plant record from the user's collection. (DELETE method)
+    Deletes a single plant record from the
+    user's collection. (DELETE method)
     Requires: JWT in Authorization header.
     Receives: plant_id (UUID) in URL path.
     """
