@@ -77,7 +77,7 @@ def test_db_insert():
     """Tests the database connection by inserting a hardcoded record."""
     if not DB_SERVICE_LOADED:
         return jsonify({"status": "error", "message": "Database "
-        "Service failed to load."}), 500
+                        "Service failed to load."}), 500
 
     # Hardcoded dummy data to ensure the database can be written to
     dummy_user_id = "TEST_USER_ID"
@@ -88,20 +88,27 @@ def test_db_insert():
     collection_name = data.get('collection_name', 'Test Collection')
 
     if not plant_data:
-         plant_data = {"common_name": "Hardcoded Test Plant", "scientific_name": "Debug Example"}
+        plant_data = {"common_name": "Test Plant", "scientific_name": "Example"}
 
     print(f"Attempting to save record for User: {dummy_user_id}")
 
     try:
-        result = db_service.save_plant_to_collection(dummy_user_id, plant_data, collection_name)
-        
+        result = db_service.save_plant_to_collection(
+            dummy_user_id, plant_data,
+            collection_name
+        )
+
         if result['status'] == 'success':
             return jsonify(result), 200
         else:
             return jsonify(result), 500
     except Exception as e:
         print(f"Server-side exception during DB test: {e}")
-        return jsonify({"status": "error", "message": f"Database insertion failed: {e}"}), 500
+        return jsonify({"status": "error",
+                        "message": (
+                            f"Database insertion failed: {e}"
+                            )
+                        }), 500
 
 
 # --- WELCOME PAGE / ROOT HEALTH CHECK ---
@@ -121,6 +128,7 @@ def index():
         "version": "v1",
         "endpoints": available_routes
     })
+
 
 # Run the app
 if __name__ == '__main__':

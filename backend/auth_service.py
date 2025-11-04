@@ -1,7 +1,7 @@
-from flask import jsonify
 import requests
 import os
 from dotenv import load_dotenv
+# from flask import jsonify
 
 # Load environment variables (necessary for Supabase keys)
 load_dotenv()
@@ -16,22 +16,22 @@ DB_BASE_URL = f"{SUPABASE_URL}/rest/v1"
 
 # --- Helper Function for Database Insert ---
 
+
 def create_user_profile_record(user_id: str, email: str):
     """Inserts a new record into the 'profiles' table using the Service Key."""
-    
-    # We use the Service Role Key because RLS might prevent the Anon Key from writing to the profiles table.
+
     headers = {
         "apikey": SUPABASE_SERVICE_KEY,
         "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
         "Content-Type": "application/json",
         "Prefer": "return=minimal"
     }
-    
+
     profile_data = {
         "id": user_id, 
         "email": email,
     }
-    
+
     try:
         response = requests.post(
             f"{DB_BASE_URL}/profiles",
@@ -47,7 +47,7 @@ def create_user_profile_record(user_id: str, email: str):
 
         print(f"SUCCESS: Profile created for user ID {user_id}")
         return True
-        
+
     except requests.exceptions.RequestException as e:
         print(f"NETWORK ERROR: Profile creation failed. {e}")
         return False
@@ -100,61 +100,3 @@ def sign_in(email, password):
         
     except requests.exceptions.RequestException as e:
         return {"error": f"Network error during signin: {e}"}, 500
-
-'''
-from flask import current_app
-import requests
-import os
-from dotenv import load_dotenv
-
-# --- Supabase Configuration ---
-# NOTE: This file assumes SUPABASE_URL and SUPABASE_ANON_KEY are set in your .env
-load_dotenv()
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-
-# Define the base URL for the Supabase Auth endpoint
-AUTH_URL = f"{SUPABASE_URL}/auth/v1"
-
-def _handle_supabase_request(endpoint, data):
-    """Helper function to make POST requests to Supabase Auth."""
-    headers = {
-        "apikey": SUPABASE_KEY,
-        "Content-Type": "application/json"
-    }
-    url = f"{AUTH_URL}/{endpoint}"
-    
-    # CRITICAL CHECK: Ensure Supabase URL is available
-    if not SUPABASE_URL or not SUPABASE_KEY:
-        print("CONFIG ERROR: Supabase credentials missing!")
-        return {"error": "Server configuration error: Supabase keys are missing. Check .env."}, 500
-
-    try:
-        response = requests.post(url, headers=headers, json=data, timeout=10)
-        response.raise_for_status() # Raises an exception for 4xx/5xx status codes
-        return response.json(), 200
-    except requests.exceptions.HTTPError as e:
-        print(f"Supabase Auth Error: {e.response.text}")
-        try:
-            # Attempt to return the specific error message from Supabase
-            error_data = e.response.json()
-            return {"error": error_data.get('msg') or error_data.get('error_description')}, e.response.status_code
-        except:
-            # Fallback for non-JSON errors
-            return {"error": "Authentication failed due to external server error."}, 500
-    except requests.exceptions.RequestException as e:
-        return {"error": "Network error communicating with Supabase."}, 503
-
-# --- Public API Functions ---
-
-def sign_up(email, password):
-    """Registers a new user with Supabase."""
-    data = {"email": email, "password": password}
-    return _handle_supabase_request("signup", data)
-
-def sign_in(email, password):
-    """Authenticates an existing user."""
-    # Supabase uses this specific endpoint and grant type for password login
-    data = {"email": email, "password": password}
-    return _handle_supabase_request("token?grant_type=password", data)
-'''

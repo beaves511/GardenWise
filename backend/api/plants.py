@@ -35,7 +35,7 @@ def public_plant_search():
 
         # If the service returns None or an empty list
         return jsonify({"message": (
-                        f"Plant '{plant_name}' not found in " 
+                        f"Plant '{plant_name}' not found in "
                         "any database."
                         )
                         }), 404
