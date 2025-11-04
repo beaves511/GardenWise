@@ -2,7 +2,7 @@
 
 import { useCollections } from '../hooks/useCollections';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+// import Image from 'next/image';
 import { LuDroplet, LuSun, LuSettings, LuTrash2, LuPencil, LuArchive, LuImageOff, LuX } from 'react-icons/lu'; 
 import { useState, useEffect, useRef } from 'react';
 
@@ -424,7 +424,7 @@ const CollectionCard = ({ name, plants, router, onDelete, onDeleteCollection }) 
                 <div style={styles.itemSectionNameMerged}>
                     
                     {imageUrl ? (
-                        <Image 
+                        <img
                             src={imageUrl} 
                             alt={common_name} 
                             width={45} 
