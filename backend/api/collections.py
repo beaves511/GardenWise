@@ -72,7 +72,7 @@ def token_required(f):
             # Catches other generic JWT errors (e.g., malformed token)
             print(f"JWT Decode Error: {e}")
             return jsonify({"error": "Authentication failed "
-                        "(malformed token)."}, 401), 401
+                            "(malformed token)."}, 401), 401
         except Exception as e:
             # Catches final unknown errors (e.g., bad key format)
             print(f"General Auth Error: {e}")
@@ -200,14 +200,14 @@ def delete_collection_container_route(collection_name):
                 return jsonify({"status": "success", "message": f"Collection '{collection_name}' and associated plants deleted."}), 200
             else:
                  # Handles case where collection name was valid but container not found for user (0 rows deleted)
-                 return jsonify({"status": "error", "message": f"Collection '{collection_name}' not found for user, or no records deleted."}), 404
+                return jsonify({"status": "error", "message": f"Collection '{collection_name}' not found for user, or no records deleted."}), 404
 
         # If the result status was 'error', return it directly
         return jsonify(result), 500 
     except Exception as e:
         print(f"Collection Container DELETE Crash: {e}")
         return jsonify({"status": "error", "message": "Failed to delete collection"
-            " container due to server error."}), 500
+                        " container due to server error."}), 500
 
 
 @collections_bp.route('/collections/<string:plant_id>', methods=['DELETE'])
@@ -219,12 +219,12 @@ def delete_from_collection_route(plant_id):
     Requires: JWT in Authorization header.
     Receives: plant_id (UUID) in URL path.
     """
-    user_id = request.user_id 
+    user_id = request.user_id
 
     try:
         # Input validation for the ID
         if not plant_id:
-             return jsonify({"error": "Missing plant ID in path."}), 400
+            return jsonify({"error": "Missing plant ID in path."}), 400
 
         # Delegate to the Database Service Layer
         # The service layer must ensure the user_id matches the record owner (RLS is also doing this)
@@ -234,8 +234,8 @@ def delete_from_collection_route(plant_id):
             return jsonify({"status": "success", "message": f"Plant {plant_id} deleted successfully."}), 200
         else:
             # If the plant wasn't found or delete failed
-            return jsonify(result), 404 
-   
+            return jsonify(result), 404
+
     except Exception as e:
         print(f"Database DELETE Crash: {e}")
         return jsonify({"status": "error", "message": "Failed to delete plant due to server error."}), 500
