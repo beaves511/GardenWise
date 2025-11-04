@@ -88,7 +88,7 @@ def test_db_insert():
     collection_name = data.get('collection_name', 'Test Collection')
 
     if not plant_data:
-        plant_data = {"common_name": "Test Plant", "scientific_name": "Example"}
+        plant_data = {"common_name": "Test", "scientific_name": "Example"}
 
     print(f"Attempting to save record for User: {dummy_user_id}")
 
