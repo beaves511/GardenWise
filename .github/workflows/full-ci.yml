@@ -32,11 +32,6 @@ jobs:
         # Install necessary security and test tools
         pip install flake8 pytest pytest-cov bandit
 
-    - name: 4. Run Pytest Unit Tests
-      run: |
-        # Runs tests and creates a coverage report
-        pytest --cov=. --cov-report=xml 
-        
     - name: 5. Perform Static Analysis (Flake8 & Bandit)
       run: |
         # Flake8: General Style and Code Quality
@@ -47,6 +42,11 @@ jobs:
         echo "--- Running Bandit (Security Check) ---"
         # Scans for common security issues (e.g., hardcoded secrets, dangerous functions)
         bandit -r . -x ./tests/* -ll -q
+        
+    - name: 4. Run Pytest Unit Tests
+      run: |
+        # Runs tests and creates a coverage report
+        pytest ./tests --cov=. --cov-report=xml 
         
     - name: 6. Upload Coverage Report (Artifact)
       uses: actions/upload-artifact@v4

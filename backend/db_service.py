@@ -93,7 +93,7 @@ def save_plant_to_collection(user_id, plant_data, collection_name: str):
     if collection_response['status'] == 'empty':
         # If collection doesn't exist, create it automatically
         print(
-            f"Collection '{collection_name}' not found. Creating new collection...")
+            f"{collection_name} not found. Creating new collection")
         create_result = create_empty_collection(user_id, collection_name)
 
         if create_result['status'] != 'success':
@@ -107,7 +107,7 @@ def save_plant_to_collection(user_id, plant_data, collection_name: str):
         collection_id = collection_response['data'][0]['id']
 
     if not collection_id:
-        return collection_response  # Returns the actual error message if ID retrieval failed
+        return collection_response
 
     # 2. Prepare the child plant record
     plant_record = {
@@ -118,7 +118,12 @@ def save_plant_to_collection(user_id, plant_data, collection_name: str):
 
     def query_func():
         # Insert the record into the collection_plants child table
-        return supabase.table('collection_plants').insert(plant_record).execute()
+        return (
+                supabase
+                .table('collection_plants')
+                .insert(plant_record)
+                .execute()
+        )
 
     return _handle_supabase_query(query_func)
 
