@@ -6,6 +6,7 @@ import os
 # NOTE: This test file is designed to run from the root backend directory.
 # It tests if the critical service files can be imported and initialized.
 
+
 def test_service_layer_imports():
     """
     This is an integration check to ensure file paths and initial dependencies
@@ -44,4 +45,4 @@ def test_environment_variables_are_loaded():
         # Check if the environment variable is present
         # In GitHub Actions, you must set these as repository secrets
         if os.getenv(key) is None:
-            pytest.fail(f"Critical environment variable '{key}' is missing/None.")
+            pytest.fail(f"Critical env variable '{key}' missing/None.")

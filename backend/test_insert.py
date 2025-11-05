@@ -34,12 +34,12 @@ def run_database_test():
             print("✅ SUCCESS! Database insertion verified.")
             print(f"Record saved with ID: {result.get('id')}")
             print(
-                f"Check your Supabase 'collections' table for user ID: {test_user_id}")
+                f"Check 'collections' table for user ID: {test_user_id}")
         else:
             # If the service returns a failure dictionary
             print("❌ FAILURE! Database insertion failed.")
             print(
-                f"Error Details: {result.get('error', 'Unknown database error.')}")
+                f"Error Details: {result.get('error', 'Unknown error.')}")
             print(f"Supabase Code: {result.get('code', 'N/A')}")
 
     except Exception as e:
