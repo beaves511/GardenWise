@@ -35,6 +35,11 @@ jobs:
     - name: 4. Add Backend Root to Python Path
       # This step makes 'db_service' and other root modules importable by tests in subdirectories
       run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
+        
+    - name: Debug directory structure
+      run: |
+        pwd
+        ls -R
 
     - name: 6. Run Pytest Unit Tests
       run: python -m pytest tests/test_services.py --cov=. --cov-report=xml
