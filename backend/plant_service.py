@@ -125,7 +125,7 @@ def fetch_and_cache_plant_details(plant_name):
             "description": plant_result.get('Description',
                                             'No detailed description available.') or 'No detailed description available.',
             "care_instructions": {
-                # Map the exact API key names (with spaces) to your internal names
+                # Map exact API key names (with spaces) to internal names
                 "light": plant_result.get('Light ideal', 'Unknown'),
                 "watering": plant_result.get('Watering', 'Unknown'),
                 "fertilization": "Not specified in API response.",
@@ -144,7 +144,7 @@ def fetch_and_cache_plant_details(plant_name):
         return None
 
     except requests.exceptions.RequestException as e:
-        # Catches network errors (This is the error you were seeing before the fix)
+        # Catches network errors
         print(f"NETWORK ERROR connecting to RapidAPI: {e}")
         return None
 
