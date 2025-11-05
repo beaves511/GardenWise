@@ -132,4 +132,5 @@ def index():
 
 # Run the app
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    # removed degub=True for production safety
+    app.run(port=5000)
