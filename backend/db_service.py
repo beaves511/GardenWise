@@ -105,7 +105,12 @@ def save_plant_to_collection(user_id, plant_data, collection_name: str):
         create_result = create_empty_collection(user_id, collection_name)
 
         if create_result['status'] != 'success':
-            return {"status": "error", "message": f"Failed to create necessary collection '{collection_name}'."}
+            return {
+                "status": "error",
+                "message": (
+                    f"Failed to create necessary collection '{collection_name}'."
+                ),
+            }
 
         # FIX: Extract the ID directly from the creation response
         collection_id = create_result['data'][0]['id']

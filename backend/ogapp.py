@@ -1,9 +1,9 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 # Import standard libraries for error checking
-import os
+# import os
 from dotenv import load_dotenv
-import sys
+# import sys
 
 try:
     from plant_service import fetch_and_cache_plant_details
