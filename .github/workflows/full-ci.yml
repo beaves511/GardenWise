@@ -16,8 +16,6 @@ jobs:
     defaults:
       run:
         working-directory: ./backend # Set context for backend directory
-    env: 
-        PYTEST_ADDOPTS: "--pyargs tests"
     steps:
     - name: 1. Checkout Code
       uses: actions/checkout@v4
@@ -39,7 +37,7 @@ jobs:
       run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
 
     - name: 6. Run Pytest Unit Tests
-      run: pytest --pyargs tests --cov=. --cov-report=xml --import-mode=importlib
+      run: pytest tests/ --cov=. --cov-report=xml --import-mode=importlib
 
     - name: 5. Perform Static Analysis (Flake8 & Bandit)
       run: |
