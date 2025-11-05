@@ -1,7 +1,7 @@
 import pytest
 # import os
 
-# CRITICAL FIX: Use relative import to access files in the parent directory (backend/)
+# CRITICAL FIX: Use relative import (backend/)
 from .. import db_service
 
 
