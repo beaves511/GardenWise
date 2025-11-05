@@ -108,7 +108,7 @@ def save_plant_to_collection(user_id, plant_data, collection_name: str):
             return {
                 "status": "error",
                 "message": (
-                    f"Failed to create necessary collection '{collection_name}'."
+                    f"Failed to create collection '{collection_name}'."
                 ),
             }
 
@@ -143,7 +143,7 @@ def save_plant_to_collection(user_id, plant_data, collection_name: str):
 
 def get_user_collections(user_id: str):
     """
-    Retrieves all collection records for a specific user ID, joining the parent and child tables.
+    Retrieves all collection records for a specific user ID.
     """
     # 1. Get all parent collections owned by the user
     def get_parents_func():
@@ -162,7 +162,7 @@ def get_user_collections(user_id: str):
     if not isinstance(parent_collections, list):
         print(
             f"Data Retrieval Error: Parent collections data not a list: {parent_collections}")
-        return {"status": "error", "message": "Corrupt parent collection data structure."}
+        return {"status": "error", "message": "Corrupt parent collection."}
 
     # 2. Get all child plant records related to those parent collections
     collection_ids = [c.get('id') for c in parent_collections if isinstance(
@@ -179,10 +179,10 @@ def get_user_collections(user_id: str):
         if children_response['message'] != 'No records found.':
             return children_response
         else:
-            # Convert the 'empty' error back to an empty successful state for the aggregation logic
+            # Convert the 'empty' error back to an empty successful state
             children_response = {'status': 'success', 'data': []}
 
-    # 3. Join the data into the final structure { "Collection Name": [ {plant}, {plant} ] }
+    # 3. Join the data into the final structure
     children_data = children_response.get('data', [])
 
     try:
@@ -219,7 +219,7 @@ def get_user_collections(user_id: str):
 def delete_plant_record(user_id, plant_id: str):
     """Deletes a single plant record from the collection_plants table by ID."""
 
-    # NOTE: Since RLS is active on collection_plants (using the complex JOIN policy),
+    # NOTE: Since RLS is active on collection_plants,
     # the client will automatically ensure the user owns the parent collection.
 
     def query_func():

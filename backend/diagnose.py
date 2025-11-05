@@ -21,8 +21,8 @@ def diagnose_routes():
     if found_api_v1_plant:
         print("SUCCESS: Found route /api/v1/plants")
     else:
-        print("FAILURE: Could not find route /api/v1/plants. The route is not registered.")
-        print("   -> Possible causes: Failed import in app.py or typo in the @app.route decorator.")
+        print("Could not find route /api/v1/plants. Route not registered.")
+        print(" Possible causes: Failed import in app.py")
 
 
 if __name__ == '__main__':
