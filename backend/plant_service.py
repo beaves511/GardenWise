@@ -103,7 +103,7 @@ def fetch_and_cache_plant_details(plant_name):
             'Common name', [plant_name.capitalize()])
         common_name = (
             common_name_list[0]
-            if isinstance(common_name_list, list) and common_name_list 
+            if isinstance(common_name_list, list) and common_name_list
             else common_name_list
         )
 
@@ -112,7 +112,10 @@ def fetch_and_cache_plant_details(plant_name):
         temp_max_c = plant_result.get('Temperature max', {}).get('C', 'N/A')
 
         primary_image_url = plant_result.get('Url')
-        if not primary_image_url or not primary_image_url.endswith(('.jpg', '.png', '.gif')):
+        if (
+            not primary_image_url
+            or not primary_image_url.endswith(('.jpg', '.png', '.gif'))
+        ):
             primary_image_url = plant_result.get('Img')
 
         normalized_data = {

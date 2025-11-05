@@ -168,7 +168,7 @@ def get_user_collections(user_id: str):
     parent_collections = parents_response.get('data')
     if not isinstance(parent_collections, list):
         print(
-            f"Data Retrieval Error: Parent collections data not a list: {parent_collections}")
+            f"Error: Parent collection data not list: {parent_collections}")
         return {"status": "error", "message": "Corrupt parent collection."}
 
     # 2. Get all child plant records related to those parent collections
@@ -177,7 +177,14 @@ def get_user_collections(user_id: str):
 
     def get_children_func():
         # Targets the 'collection_plants' table
-        return supabase.table('collection_plants').select('*').in_('collection_id', collection_ids).order('collection_id').execute()
+        return (
+            supabase
+            .table('collection_plants')
+            .select('*')
+            .in_('collection_id', collection_ids)
+            .order('collection_id')
+            .execute()
+        )
 
     children_response = _handle_supabase_query(get_children_func)
 
