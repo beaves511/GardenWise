@@ -32,6 +32,10 @@ jobs:
         # Install necessary security and test tools
         pip install flake8 pytest pytest-cov bandit
 
+    - name: 4. Add Backend Root to Python Path
+      # This step makes 'db_service' and other root modules importable by tests in subdirectories
+      run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
+
     - name: 5. Perform Static Analysis (Flake8 & Bandit)
       run: |
         # Flake8: General Style and Code Quality
@@ -43,12 +47,12 @@ jobs:
         # Scans for common security issues (e.g., hardcoded secrets, dangerous functions)
         bandit -r . -x ./tests/* -ll -q
 
-    - name: 4. Run Pytest Unit Tests
+    - name: 6. Run Pytest Unit Tests
       run: |
         # Runs tests and creates a coverage report
         pytest . --cov=. --cov-report=xml --import-mode=importlib
         
-    - name: 6. Upload Coverage Report (Artifact)
+    - name: 7. Upload Coverage Report (Artifact)
       uses: actions/upload-artifact@v4
       with:
         name: backend-coverage-report
