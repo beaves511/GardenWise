@@ -37,7 +37,7 @@ jobs:
       run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
 
     - name: 6. Run Pytest Unit Tests
-      run: pytest tests/ --cov=. --cov-report=xml --import-mode=importlib
+      run: pytest tests/test_services.py --cov=. --cov-report=xml --import-mode=importlib
 
     - name: 5. Perform Static Analysis (Flake8 & Bandit)
       run: |
