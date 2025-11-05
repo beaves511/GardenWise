@@ -1,6 +1,6 @@
 import requests
 import os
-import time
+# import time
 from dotenv import load_dotenv
 
 # --- CONFIGURATION & ENVIRONMENT VARIABLE CHECK ---
@@ -11,7 +11,7 @@ if not os.path.exists(DOTENV_PATH):
     print("-" * 70)
     print("WARNING: .env file not found in the current working directory.")
     print(f"Expected path: {DOTENV_PATH}")
-    print("Please ensure your terminal is running from the 'backend/' directory.")
+    print("Ensure terminal is running from the 'backend/' directory.")
     print("-" * 70)
 
 # Load environment variables. This must run in every file that needs them.
@@ -36,8 +36,8 @@ if not RAPIDAPI_KEY or not RAPIDAPI_HOST or not RAPIDAPI_BASE_URL:
 
     # Raise a runtime error to stop the application and clearly state the error
     raise ValueError(
-        f"CONFIGURATION ERROR: Missing critical RapidAPI environment variables: {', '.join(missing_vars)}. "
-        "Please check your backend/.env file for typos or ensure the file is present."
+        f"Missing critical RapidAPI environment variables: {', '.join(missing_vars)}. "
+        "Check backend/.env file for typos or ensure the file is present."
     )
 
 # --- CACHING SETUP (Disabled for direct testing) ---
@@ -86,7 +86,7 @@ def fetch_and_cache_plant_details(plant_name):
         # --- DATA NORMALIZATION / TRANSFORMATION ---
 
         # Extract the first result and handle the nested 'item' key
-        # The response is a list of dictionaries, where each dict contains an 'item' key
+        # The response is a list of dictionaries
         first_item = rapidapi_data[0] if isinstance(
             rapidapi_data, list) and rapidapi_data else None
 
@@ -95,7 +95,8 @@ def fetch_and_cache_plant_details(plant_name):
 
         if not plant_result:
             print(
-                f"ERROR: API returned data, but no detailed plant result found for '{plant_name}'.")
+                f"ERROR: API returned data, but no "
+                "detailed plant result found for '{plant_name}'.")
             return None
 
         # Extract common name (which is a list) and convert to a string

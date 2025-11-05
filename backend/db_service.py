@@ -83,7 +83,15 @@ def save_plant_to_collection(user_id, plant_data, collection_name: str):
     # 1. Find the parent collection ID based on user_id and collection_name
     def get_collection_id_func():
         # Targets the 'collections' table
-        return supabase.table('collections').select('id').eq('user_id', user_id).eq('collection_name', collection_name).limit(1).execute()
+        return (
+            supabase
+            .table('collections')
+            .select('id')
+            .eq('user_id', user_id)
+            .eq('collection_name', collection_name)
+            .limit(1).
+            execute()
+        )
 
     collection_response = _handle_supabase_query(get_collection_id_func)
 
