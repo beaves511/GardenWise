@@ -140,7 +140,9 @@ def fetch_and_cache_plant_details(plant_name):
     except requests.exceptions.HTTPError as e:
         # Catches 401 (Unauthorized), 404, 500 from the external API
         print(
-            f"HTTP ERROR from RapidAPI: Status {e.response.status_code}. Details: {e.response.text}")
+            f"HTTP ERROR from RapidAPI: Status {e.response.status_code}. "
+            f"Details: {e.response.text}"
+        )
         return None
 
     except requests.exceptions.RequestException as e:

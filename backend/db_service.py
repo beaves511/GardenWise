@@ -238,7 +238,13 @@ def delete_plant_record(user_id, plant_id: str):
 
     def query_func():
         # Execute the delete query on the child table
-        return supabase.table('collection_plants').delete().eq('id', plant_id).execute()
+        return (
+            supabase
+            .table('collection_plants')
+            .delete()
+            .eq('id', plant_id)
+            .execute()
+        )
 
     return _handle_supabase_query(query_func)
 

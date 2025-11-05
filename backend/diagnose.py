@@ -10,7 +10,11 @@ def diagnose_routes():
 
     # Iterate through all the rules Flask has defined for URL routing
     for rule in flask_app.url_map.iter_rules():
-        route_string = f"Endpoint: {rule.endpoint} | Methods: {rule.methods} | Path: {rule.rule}"
+        route_string = (
+            f"Endpoint: {rule.endpoint} | "
+            f"Methods: {rule.methods} | "
+            f"Path: {rule.rule}"
+        )
         print(route_string)
 
         # Check specifically for the route we are interested in
