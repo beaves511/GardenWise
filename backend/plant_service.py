@@ -36,7 +36,7 @@ if not RAPIDAPI_KEY or not RAPIDAPI_HOST or not RAPIDAPI_BASE_URL:
 
     # Raise a runtime error to stop the application and clearly state the error
     raise ValueError(
-        f"Missing critical RapidAPI environment variables: {', '.join(missing_vars)}. "
+        f"Missing RapidAPI environment variables: {', '.join(missing_vars)}. "
         "Check backend/.env file for typos or ensure the file is present."
     )
 
@@ -95,8 +95,7 @@ def fetch_and_cache_plant_details(plant_name):
 
         if not plant_result:
             print(
-                f"ERROR: API returned data, but no "
-                "detailed plant result found for '{plant_name}'.")
+                f"ERROR: No detailed plant result found for {plant_name}")
             return None
 
         # Extract common name (which is a list) and convert to a string
@@ -113,7 +112,6 @@ def fetch_and_cache_plant_details(plant_name):
         if not primary_image_url or not primary_image_url.endswith(('.jpg', '.png', '.gif')):
             primary_image_url = plant_result.get('Img')
 
-        # Transform the external API fields into your internal application structure
         normalized_data = {
             "id": plant_result.get('id', 'mock-1'),
             "common_name": common_name,

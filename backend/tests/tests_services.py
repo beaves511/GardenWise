@@ -3,7 +3,7 @@
 import pytest
 import os
 
-# NOTE: This test file is designed to run from the root of the backend directory.
+# NOTE: This test file is designed to run from the root backend directory.
 # It tests if the critical service files can be imported and initialized.
 
 def test_service_layer_imports():
@@ -18,7 +18,7 @@ def test_service_layer_imports():
         from api.collections import collections_bp
         from api.auth import auth_bp
         # from api.ai_planner import ai_bp
-        
+
         # If all imports succeed, the test passes
         assert db_service is not None
         assert auth_service is not None
@@ -41,7 +41,7 @@ def test_environment_variables_are_loaded():
     required_keys = ["SUPABASE_URL", "SUPABASE_SERVICE_KEY", "GEMINI_API_KEY"]
 
     for key in required_keys:
-        # Check if the environment variable is present (os.getenv should return something)
-        # In GitHub Actions, you must set these as repository secrets for a full test.
+        # Check if the environment variable is present
+        # In GitHub Actions, you must set these as repository secrets
         if os.getenv(key) is None:
-            pytest.fail(f"SECURITY WARNING: Critical environment variable '{key}' is missing or None.")
+            pytest.fail(f"Critical environment variable '{key}' is missing/None.")
