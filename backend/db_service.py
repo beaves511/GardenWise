@@ -148,7 +148,14 @@ def get_user_collections(user_id: str):
     # 1. Get all parent collections owned by the user
     def get_parents_func():
         # Targets the 'collections' table
-        return supabase.table('collections').select('id, collection_name').eq('user_id', user_id).order('collection_name').execute()
+        return (
+            supabase
+            .table('collections')
+            .select('id, collection_name')
+            .eq('user_id', user_id)
+            .order('collection_name')
+            .execute()
+        )
 
     parents_response = _handle_supabase_query(get_parents_func)
 

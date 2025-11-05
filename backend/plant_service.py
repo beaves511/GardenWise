@@ -101,8 +101,11 @@ def fetch_and_cache_plant_details(plant_name):
         # Extract common name (which is a list) and convert to a string
         common_name_list = plant_result.get(
             'Common name', [plant_name.capitalize()])
-        common_name = common_name_list[0] if isinstance(common_name_list,
-                                                        list) and common_name_list else common_name_list
+        common_name = (
+            common_name_list[0]
+            if isinstance(common_name_list, list) and common_name_list 
+            else common_name_list
+        )
 
         # Extract temperatures
         temp_min_c = plant_result.get('Temperature min', {}).get('C', 'N/A')
