@@ -1,4 +1,4 @@
-import pytest
+# import pytest
 # import os
 
 # CRITICAL FIX: Use relative import (backend/)
@@ -9,7 +9,7 @@ def test_db_service_is_importable():
     """
     Verifies that core database service module correctly imported
     from the parent directory.
-    
+
     If test fails, it means CI runner not find db_service.py file,
     and the PYTHONPATH setup or the file structure is wrong.
     """
