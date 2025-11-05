@@ -44,6 +44,12 @@ jobs:
     - name: 6. Run Pytest Unit Tests
       run: python -m pytest tests/tests_services.py --cov=. --cov-report=xml
 
+    - name: 7. Upload Coverage Report (Artifact)
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-coverage-report
+        path: ./backend/coverage.xml
+
     - name: 5. Perform Static Analysis (Flake8 & Bandit)
       run: |
         # Flake8: General Style and Code Quality
@@ -53,14 +59,7 @@ jobs:
         # Bandit: Security Vulnerability Scanner
         echo "--- Running Bandit (Security Check) ---"
         # Scans for common security issues (e.g., hardcoded secrets, dangerous functions)
-        bandit -r . -x ./tests/* -ll -q
-
-        
-    - name: 7. Upload Coverage Report (Artifact)
-      uses: actions/upload-artifact@v4
-      with:
-        name: backend-coverage-report
-        path: ./backend/coverage.xml
+        bandit -r . -x "./tests" -ll -q
 
   # Job 2: Build and Test Next.js Frontend
   frontend_build:
