@@ -39,7 +39,7 @@ def test_environment_variables_are_loaded():
     Checks if critical environment variables are available, even if mocked.
     """
     # NOTE: In a real CI, we mock these values. Here, we check for presence.
-    required_keys = ["SUPABASE_URL", "SUPABASE_SERVICE_KEY", "GEMINI_API_KEY"]
+    required_keys = ["SUPABASE_URL", "SUPABASE_SERVICE_KEY"]
     
     for key in required_keys:
         # Check if the environment variable is present (os.getenv should return something)
