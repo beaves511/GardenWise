@@ -227,7 +227,12 @@ def get_user_collections(user_id: str):
     except Exception as e:
         # FINAL CRASH CATCH: This ensures the server never crashes silently
         print(f"FATAL DATA AGGREGATION CRASH: {e}")
-        return {"status": "error", "message": f"Server failed to aggregate collections data: {e}"}
+        return {
+            "status": "error",
+            "message": (
+                f"Server failed to aggregate collections data: {e}"
+            ),
+        }
 
 
 def delete_plant_record(user_id, plant_id: str):
@@ -259,6 +264,13 @@ def delete_collection_container(user_id, collection_name: str):
 
     def query_func():
         # Delete the collection container by user_id and name
-        return supabase.table('collections').delete().eq('user_id', user_id).eq('collection_name', collection_name).execute()
+        return (
+            supabase
+            .table('collections')
+            .delete()
+            .eq('user_id', user_id)
+            .eq('collection_name', collection_name)
+            .execute()
+        )
 
     return _handle_supabase_query(query_func)

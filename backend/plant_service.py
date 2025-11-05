@@ -122,8 +122,12 @@ def fetch_and_cache_plant_details(plant_name):
             "id": plant_result.get('id', 'mock-1'),
             "common_name": common_name,
             "scientific_name": plant_result.get('Latin name', 'N/A'),
-            "description": plant_result.get('Description',
-                                            'No detailed description available.') or 'No detailed description available.',
+            "description": (
+                plant_result.get(
+                    'Description',
+                    'No detailed description available.'
+                ) or 'No detailed description available.'
+            ),
             "care_instructions": {
                 # Map exact API key names (with spaces) to internal names
                 "light": plant_result.get('Light ideal', 'Unknown'),
