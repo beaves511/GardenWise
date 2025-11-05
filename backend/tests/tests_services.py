@@ -2,7 +2,7 @@
 # import os
 
 # CRITICAL FIX: Use relative import (backend/)
-from .. import db_service
+import db_service
 
 
 def test_db_service_is_importable():
