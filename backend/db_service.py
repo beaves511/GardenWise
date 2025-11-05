@@ -24,7 +24,7 @@ def _handle_supabase_query(query_func):
     """Executes a Supabase query and handles standard API errors."""
     if not supabase:
         return {"status": "error", "message": "Database"
-            " client failed to initialize."}
+                " client failed to initialize."}
 
     try:
         # The query_func argument is the actual lambda function that executes the query
@@ -32,7 +32,7 @@ def _handle_supabase_query(query_func):
 
         # Supabase API returns data in the 'data' key or an error object.
         if hasattr(response, 'error') and response.error:
-             # Check for specific error code 23505 (unique constraint violation)
+            # Check for specific error code 23505 (unique constraint violation)
             if response.error.code == '23505':
                 return {"status": "error", "message": "A record with this name already exists.", "code": response.error.code}
 
@@ -49,6 +49,7 @@ def _handle_supabase_query(query_func):
         return {"status": "error", "message": f"Database query failed: {e}"}
 
 # --- CRUD Functions ---
+
 
 def create_empty_collection(user_id, collection_name: str):
     """
@@ -70,7 +71,7 @@ def create_empty_collection(user_id, collection_name: str):
 
 def save_plant_to_collection(user_id, plant_data, collection_name: str):
     """
-    Saves a plant record to the 'collection_plants' table, linking it 
+    Saves a plant record to the 'collection_plants' table, linking it
     to the correct collection PARENT record.
     """
 
@@ -86,7 +87,8 @@ def save_plant_to_collection(user_id, plant_data, collection_name: str):
     # --- CRITICAL FIX: Check if the collection needs to be created ---
     if collection_response['status'] == 'empty':
         # If collection doesn't exist, create it automatically
-        print(f"Collection '{collection_name}' not found. Creating new collection...")
+        print(
+            f"Collection '{collection_name}' not found. Creating new collection...")
         create_result = create_empty_collection(user_id, collection_name)
 
         if create_result['status'] != 'success':
@@ -100,13 +102,13 @@ def save_plant_to_collection(user_id, plant_data, collection_name: str):
         collection_id = collection_response['data'][0]['id']
 
     if not collection_id:
-        return collection_response # Returns the actual error message if ID retrieval failed
+        return collection_response  # Returns the actual error message if ID retrieval failed
 
     # 2. Prepare the child plant record
     plant_record = {
         "collection_id": collection_id,
         "common_name": plant_data.get('common_name', 'Unnamed Plant'),
-        "plant_details_json": plant_data, # Store the full JSON data
+        "plant_details_json": plant_data,  # Store the full JSON data
     }
 
     def query_func():
@@ -135,12 +137,13 @@ def get_user_collections(user_id: str):
     # Defensive check: Ensure data is a list before proceeding
     parent_collections = parents_response.get('data')
     if not isinstance(parent_collections, list):
-        print(f"Data Retrieval Error: Parent collections data not a list: {parent_collections}")
+        print(
+            f"Data Retrieval Error: Parent collections data not a list: {parent_collections}")
         return {"status": "error", "message": "Corrupt parent collection data structure."}
 
-
     # 2. Get all child plant records related to those parent collections
-    collection_ids = [c.get('id') for c in parent_collections if isinstance(c, dict) and 'id' in c] # Use .get for safety
+    collection_ids = [c.get('id') for c in parent_collections if isinstance(
+        c, dict) and 'id' in c]  # Use .get for safety
 
     def get_children_func():
         # Targets the 'collection_plants' table
@@ -151,17 +154,18 @@ def get_user_collections(user_id: str):
     # Check for errors in children response (empty is okay)
     if children_response['status'] == 'error':
         if children_response['message'] != 'No records found.':
-             return children_response
+            return children_response
         else:
-             # Convert the 'empty' error back to an empty successful state for the aggregation logic
-             children_response = {'status': 'success', 'data': []}
+            # Convert the 'empty' error back to an empty successful state for the aggregation logic
+            children_response = {'status': 'success', 'data': []}
 
     # 3. Join the data into the final structure { "Collection Name": [ {plant}, {plant} ] }
     children_data = children_response.get('data', [])
 
     try:
         # Create a mapping of collection_id to collection_name
-        collection_name_map = {c['id']: c['collection_name'] for c in parent_collections}
+        collection_name_map = {c['id']: c['collection_name']
+                               for c in parent_collections}
 
         # Initialize plant map with all parent IDs
         plant_map = {c['id']: [] for c in parent_collections}
@@ -172,7 +176,7 @@ def get_user_collections(user_id: str):
                 # Use .get() for safety
                 collection_id = plant.get('collection_id')
                 if collection_id and collection_id in plant_map:
-                     plant_map[collection_id].append(plant)
+                    plant_map[collection_id].append(plant)
 
         # 4. Final grouping and aggregation: Map IDs back to Names
         final_collections = {}
@@ -203,9 +207,10 @@ def delete_plant_record(user_id, plant_id: str):
 
 # --- NEW FUNCTION: Deletes the Collection Container ---
 
+
 def delete_collection_container(user_id, collection_name: str):
     """
-    Deletes the parent collection container, relying on ON DELETE CASCADE 
+    Deletes the parent collection container, relying on ON DELETE CASCADE
     in the database to delete all linked plant records.
     """
 

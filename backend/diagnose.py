@@ -1,4 +1,5 @@
-from app import app as flask_app # Import your Flask app instance
+from app import app as flask_app  # Import your Flask app instance
+
 
 def diagnose_routes():
     """Prints all URL routes registered in the Flask application."""
@@ -6,22 +7,23 @@ def diagnose_routes():
     print("FLASK ROUTE DIAGNOSTIC")
     print("-" * 50)
     found_api_v1_plant = False
-    
+
     # Iterate through all the rules Flask has defined for URL routing
     for rule in flask_app.url_map.iter_rules():
         route_string = f"Endpoint: {rule.endpoint} | Methods: {rule.methods} | Path: {rule.rule}"
         print(route_string)
-        
+
         # Check specifically for the route we are interested in
         if rule.rule == '/api/v1/plants' and 'GET' in rule.methods:
             found_api_v1_plant = True
-            
+
     print("-" * 50)
     if found_api_v1_plant:
         print("SUCCESS: Found route /api/v1/plants")
     else:
         print("FAILURE: Could not find route /api/v1/plants. The route is not registered.")
         print("   -> Possible causes: Failed import in app.py or typo in the @app.route decorator.")
-        
+
+
 if __name__ == '__main__':
     diagnose_routes()

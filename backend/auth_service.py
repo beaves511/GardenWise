@@ -1,6 +1,7 @@
 import requests
 import os
 from dotenv import load_dotenv
+
 # from flask import jsonify
 
 # Load environment variables (necessary for Supabase keys)
@@ -13,6 +14,7 @@ SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_KEY")
 # Supabase Auth API endpoint structure
 AUTH_BASE_URL = f"{SUPABASE_URL}/auth/v1"
 DB_BASE_URL = f"{SUPABASE_URL}/rest/v1"
+
 
 # --- Helper Function for Database Insert ---
 
@@ -28,7 +30,7 @@ def create_user_profile_record(user_id: str, email: str):
     }
 
     profile_data = {
-        "id": user_id, 
+        "id": user_id,
         "email": email,
     }
 
@@ -41,7 +43,8 @@ def create_user_profile_record(user_id: str, email: str):
         )
         # Check for non-success codes (e.g., 409 Conflict if profile already exists)
         if response.status_code >= 400:
-            print(f"ERROR: Failed to create profile for {email}. Status: {response.status_code}. Response: {response.text}")
+            print(
+                f"ERROR: Failed to create profile for {email}. Status: {response.status_code}. Response: {response.text}")
             # We don't crash the signup, but we log the error
             return False
 
@@ -63,22 +66,22 @@ def sign_up(email, password):
         "Content-Type": "application/json",
     }
     data = {"email": email, "password": password}
-    
+
     try:
         response = requests.post(url, headers=headers, json=data, timeout=10)
         auth_data = response.json()
-        
+
         if response.status_code == 200 and 'user' in auth_data:
             user_id = auth_data['user']['id']
             # CRITICAL STEP: Create the profile record asynchronously
             create_user_profile_record(user_id, email)
-            
+
             # Return the raw successful Auth response (which might include a token if configured)
             return auth_data, 200
         else:
             # Handle Supabase API errors (e.g., user already registered)
             return auth_data, response.status_code
-        
+
     except requests.exceptions.RequestException as e:
         return {"error": f"Network error during signup: {e}"}, 500
 
@@ -91,12 +94,12 @@ def sign_in(email, password):
         "Content-Type": "application/json",
     }
     data = {"email": email, "password": password}
-    
+
     try:
         response = requests.post(url, headers=headers, json=data, timeout=10)
         auth_data = response.json()
-        
+
         return auth_data, response.status_code
-        
+
     except requests.exceptions.RequestException as e:
         return {"error": f"Network error during signin: {e}"}, 500
