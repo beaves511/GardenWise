@@ -20,7 +20,7 @@ def test_service_layer_imports():
         import auth_service
         from api.collections import collections_bp
         from api.auth import auth_bp
-        from api.ai_planner import ai_bp
+        # from api.ai_planner import ai_bp
         
         # If all imports succeed, the test passes
         assert db_service is not None

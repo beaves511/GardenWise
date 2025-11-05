@@ -2,7 +2,7 @@ from supabase import create_client, Client
 import os
 # import uuid
 
-# --- Environment Setup (Assumes these are loaded in app.py or auth_service.py) ---
+# --- Environment Setup ---
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 
@@ -27,16 +27,18 @@ def _handle_supabase_query(query_func):
                 " client failed to initialize."}
 
     try:
-        # The query_func argument is the actual lambda function that executes the query
+        # The query_func argument is the actual lambda function
         response = query_func()
 
         # Supabase API returns data in the 'data' key or an error object.
         if hasattr(response, 'error') and response.error:
             # Check for specific error code 23505 (unique constraint violation)
             if response.error.code == '23505':
-                return {"status": "error", "message": "A record with this name already exists.", "code": response.error.code}
+                return {"status": "error", "message": "A record with this"
+                        " name already exists.", "code": response.error.code}
 
-            return {"status": "error", "message": response.error.message, "code": response.error.code}
+            return {"status": "error", "message": response.error.message,
+                    "code": response.error.code}
 
         if response.data is None or len(response.data) == 0:
             return {"status": "empty", "message": "No records found."}
@@ -64,7 +66,10 @@ def create_empty_collection(user_id, collection_name: str):
 
     def query_func():
         # Targets the 'collections' table
-        return supabase.table('collections').insert(collection_record, count='exact', returning='representation').execute()
+        return supabase.table('collections').insert(collection_record,
+                                                    count='exact',
+                                                    returning='representation'
+                                                    ).execute()
 
     return _handle_supabase_query(query_func)
 

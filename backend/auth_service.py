@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_PUBLIC_KEY")
-# NOTE: The Supabase Service Role Key is used for high-privilege operations like inserting a profile
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_KEY")
 
 # Supabase Auth API endpoint structure
@@ -41,10 +40,10 @@ def create_user_profile_record(user_id: str, email: str):
             json=profile_data,
             timeout=5
         )
-        # Check for non-success codes (e.g., 409 Conflict if profile already exists)
+        # Check for non-success codes
         if response.status_code >= 400:
             print(
-                f"ERROR: Failed to create profile for {email}. Status: {response.status_code}. Response: {response.text}")
+                f"Can't create profile for {email}. Response: {response.text}")
             # We don't crash the signup, but we log the error
             return False
 
@@ -59,7 +58,7 @@ def create_user_profile_record(user_id: str, email: str):
 # --- Core Authentication Functions ---
 
 def sign_up(email, password):
-    """Registers a new user with Supabase Auth and creates a database profile."""
+    """Registers a new user with Supabase Auth"""
     url = f"{AUTH_BASE_URL}/signup"
     headers = {
         "apikey": SUPABASE_ANON_KEY,
@@ -76,7 +75,7 @@ def sign_up(email, password):
             # CRITICAL STEP: Create the profile record asynchronously
             create_user_profile_record(user_id, email)
 
-            # Return the raw successful Auth response (which might include a token if configured)
+            # Return the raw successful Auth response
             return auth_data, 200
         else:
             # Handle Supabase API errors (e.g., user already registered)
