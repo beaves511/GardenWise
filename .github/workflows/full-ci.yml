@@ -16,6 +16,8 @@ jobs:
     defaults:
       run:
         working-directory: ./backend # Set context for backend directory
+    env: 
+        PYTEST_ADDOPTS: "--pyargs tests"
     steps:
     - name: 1. Checkout Code
       uses: actions/checkout@v4
@@ -39,7 +41,7 @@ jobs:
     - name: 6. Run Pytest Unit Tests
       run: |
         # Runs tests and creates a coverage report
-        pytest . --cov=. --cov-report=xml --import-mode=importlib
+        pytest --cov=. --cov-report=xml --import-mode=importlib
 
     - name: 5. Perform Static Analysis (Flake8 & Bandit)
       run: |
