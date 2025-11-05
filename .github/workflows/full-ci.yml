@@ -42,7 +42,7 @@ jobs:
         ls -R
 
     - name: 6. Run Pytest Unit Tests
-      run: python -m pytest tests/test_services.py --cov=. --cov-report=xml
+      run: python -m pytest tests/tests_services.py --cov=. --cov-report=xml
 
     - name: 5. Perform Static Analysis (Flake8 & Bandit)
       run: |
