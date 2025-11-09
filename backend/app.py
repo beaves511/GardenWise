@@ -44,6 +44,14 @@ except ImportError as e:
     print(f"Collections Blueprint failed to import. Details: {e}")
     collections_bp = Blueprint('collections', __name__)
 
+try:
+    from api.ai_planner import ai_bp
+    AI_BP_LOADED = True
+except ImportError as e:
+    AI_BP_LOADED = False
+    print(f"AI Planner Blueprint failed to import. Details: {e}")
+    ai_bp = Blueprint('ai', __name__)
+
 # Initialize Flask App
 app = Flask(__name__)
 # Configure CORS to allow requests from Next.js (port 3000)
@@ -71,6 +79,10 @@ if PLANTS_BP_LOADED:
 else:
     print("Plants Blueprint not loaded. Plant endpoints are unavailable.")
 
+if AI_BP_LOADED:
+    app.register_blueprint(ai_bp, url_prefix='/api/v1')
+else:
+    print("AI Planner Blueprint not loaded. AI endpoints are unavailable.")
 
 @app.route('/api/v1/test-db', methods=['POST'])
 def test_db_insert():
@@ -133,4 +145,4 @@ def index():
 # Run the app
 if __name__ == '__main__':
     # removed degub=True for production safety
-    app.run(port=5000)
+    app.run(port=5000, debug=True)
