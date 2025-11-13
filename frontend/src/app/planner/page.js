@@ -26,16 +26,16 @@ export default function AIPlannerPage() {
         handleSubmit 
     } = useAIPlanner();
 
-    if (isChecking) {
+    /*if (isChecking) {
         // Show minimal loading while checking token
         return <div style={{textAlign: 'center', paddingTop: '100px', fontSize: '1.2rem', color: styles.GRAY_TEXT}}>Checking access permissions...</div>;
-    }
+    }*/
 
     if (!isAuthenticated) {
         // CRITICAL FIX: Consistent Access Denied View
         return (
             <div style={styles.errorContainer}>
-                <h2 style={{color: styles.GRAY_TEXT_DARK}}>Access Denied: Protected Feature</h2>
+                <h2 style={{color: styles.GRAY_TEXT_DARK}}>Access Denied</h2>
                 <p>The AI Garden Planner requires a secure user session.</p>
                 <button onClick={() => router.replace('/auth')} style={styles.signInButton}>
                     Go to Sign In
