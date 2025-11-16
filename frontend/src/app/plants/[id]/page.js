@@ -1,10 +1,10 @@
-"use client"; // Marks this as a client cmponent to use hooks
+"use client";
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useCollectionPicker } from '../../hooks/useCollectionPicker';
 import Link from 'next/link';
-// FIX: Reverting to LuAlertTriangle, which is the standard name, to resolve the export conflict.
-import { LuLeaf, LuSun, LuThermometer, LuHeart, LuTriangleAlert } from 'react-icons/lu'; // Icons
+import { LuLeaf, LuSun, LuThermometer, LuHeart, LuTriangleAlert } from 'react-icons/lu';
 
 // --- STYLING CONSTANTS ---
 const GREEN_PRIMARY = '#10B981'; 
@@ -12,9 +12,39 @@ const GREEN_HOVER = '#059669';
 const GRAY_TEXT = '#4B5563'; 
 const GRAY_BORDER = '#D1D5DB';
 const RED_ALERT = '#EF4444';
-const GREEN_LIGHT = '#D1FAE5'; // Assuming this was the definition from index.js
+const GREEN_LIGHT = '#D1FAE5';
 
 const styles = {
+    saveActionArea: {
+        display: 'flex',
+        gap: '15px',
+        alignItems: 'center',
+        marginBottom: '25px',
+        padding: '15px',
+        backgroundColor: '#F7F7F7',
+        borderRadius: '8px',
+        border: '1px solid #E5E7EB',
+    },
+    collectionSelect: {
+        padding: '10px 15px',
+        borderRadius: '6px',
+        border: `1px solid #D1D5DB`,
+        fontSize: '1em',
+        backgroundColor: 'white',
+        cursor: 'pointer',
+        flexGrow: 1,
+    },
+    saveButton: {
+        backgroundColor: '#10B981',
+        color: 'white',
+        border: 'none',
+        padding: '10px 20px',
+        borderRadius: '6px',
+        fontSize: '1em',
+        fontWeight: '600',
+        cursor: 'pointer',
+        transition: 'background-color 0.2s',
+    },
     card: {
         maxWidth: '800px', 
         margin: '40px auto', 
@@ -102,7 +132,7 @@ const styles = {
     collectionButton: (isLoggedIn, isAdded) => ({
         backgroundColor: isLoggedIn 
             ? (isAdded ? GREEN_HOVER : GREEN_PRIMARY)
-            : GRAY_BORDER, // Disabled if logged out
+            : GRAY_BORDER,
         color: 'white',
         border: 'none',
         padding: '12px 25px',
@@ -133,9 +163,6 @@ const styles = {
     })
 };
 
-/**
- * Maps internal care keys to Lucide icons.
- */
 const getCareIcon = (key) => {
     switch (key) {
         case 'light': return <LuSun size={16} style={{ marginRight: '5px' }} />;
@@ -147,26 +174,31 @@ const getCareIcon = (key) => {
 };
 
 export default function PlantDetailPage() {
-    const { id: plantNameEncoded } = useParams(); // Get the name from the App Router URL
+    const { id: plantNameEncoded } = useParams();
     const plantName = decodeURIComponent(plantNameEncoded);
     const router = useRouter();
 
     const [plant, setPlant] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [saveStatus, setSaveStatus] = useState(null); // success, error, or null
+    const [saveStatus, setSaveStatus] = useState(null);
+    const [selectedCollection, setSelectedCollection] = useState('Favorites');
 
-    // State for tracking login status
+    const { collections: collectionNames, isLoading: isPickerLoading, refreshCollections } = useCollectionPicker(); 
     const [userId, setUserId] = useState(null);
-    const [isAdded, setIsAdded] = useState(false); // Mock state for demonstration
+    const [isAdded, setIsAdded] = useState(false);
+
+    // Debug: Log collections when they change
+    useEffect(() => {
+        console.log('Collections from hook:', collectionNames);
+        console.log('Is picker loading:', isPickerLoading);
+    }, [collectionNames, isPickerLoading]);
 
     // --- EFFECT: INITIAL DATA FETCH ---
     useEffect(() => {
-        // Check for local storage token on load
         const uid = localStorage.getItem('supabase.userId');
         if (uid) setUserId(uid);
         
-        // Fetch plant details from Flask API
         const fetchPlant = async () => {
             setLoading(true);
             setError(null);
@@ -194,6 +226,13 @@ export default function PlantDetailPage() {
         }
     }, [plantName]);
 
+    // Set the default collection to the first available one
+    useEffect(() => {
+        if (collectionNames.length > 0 && !collectionNames.includes(selectedCollection)) {
+            setSelectedCollection(collectionNames[0]);
+        }
+    }, [collectionNames]);
+
     // --- HANDLER: SAVE PLANT TO COLLECTION ---
     const handleSavePlant = async () => {
         if (!userId) {
@@ -202,12 +241,10 @@ export default function PlantDetailPage() {
             return;
         }
 
-        setSaveStatus(null);
+        setSaveStatus({type: 'loading', message: `Saving to ${selectedCollection}...`});
         const token = localStorage.getItem('supabase.token');
 
-        // DEBUG: Log the token to verify it's present and correct
         console.log('Sending JWT Token:', token ? token.substring(0, 10) + '...' : 'MISSING');
-
 
         if (!plant) {
             setSaveStatus({ message: 'Cannot save empty plant data.', isError: true });
@@ -221,24 +258,23 @@ export default function PlantDetailPage() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`, // CRITICAL: Send the JWT token
+                    'Authorization': `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                    plant_data: plant, // Send the full normalized plant data object
-                    collection_name: 'Favorites', // Default collection name
+                    plant_data: plant,
+                    collection_name: selectedCollection,
                 }),
             });
             
             const data = await response.json();
 
             if (!response.ok) {
-                // Catches 401 (Unauthorized) or 500 (Database error)
                 throw new Error(data.error || `Server responded with status ${response.status}.`);
             }
 
-            // SUCCESS!
-            setSaveStatus({ message: `Successfully added ${plant.common_name} to Favorites!`, isError: false });
-            setIsAdded(true); // Update state to show confirmation
+            setSaveStatus({ message: `Successfully added ${plant.common_name} to "${selectedCollection}"!`, isError: false });
+            setIsAdded(true);
+            refreshCollections();
             
         } catch (err) {
             console.error('Save to Collection Error:', err);
@@ -248,31 +284,11 @@ export default function PlantDetailPage() {
     };
 
     // --- RENDERING LOGIC ---
-
     if (loading) return <p style={{ textAlign: 'center', padding: '50px', fontSize: '1.2em' }}>Searching the database for {plantName}... 🪴</p>;
     
     if (error) return (
         <div style={styles.card}>
             <div style={styles.messageBox(true)}>
-                {/* Ensure the name matches the import */}
-                <LuTriangleAlert size={20} style={{ marginRight: '10px' }} />
-                <p style={{ margin: 0 }}>Error: {error}</p>
-            </div>
-            <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                <Link href="/" style={{ color: GREEN_PRIMARY, textDecoration: 'none' }}>← Try a different search</Link>
-            </div>
-        </div>
-    );
-    
-
-    // --- RENDERING LOGIC ---
-
-    if (loading) return <p style={{ textAlign: 'center', padding: '50px', fontSize: '1.2em' }}>Searching the database for {plantName}... 🪴</p>;
-    
-    if (error) return (
-        <div style={styles.card}>
-            <div style={styles.messageBox(true)}>
-                {/* Ensure the name matches the import */}
                 <LuTriangleAlert size={20} style={{ marginRight: '10px' }} />
                 <p style={{ margin: 0 }}>Error: {error}</p>
             </div>
@@ -284,13 +300,10 @@ export default function PlantDetailPage() {
     
     if (!plant) return <p style={{ textAlign: 'center', padding: '50px' }}>Plant data not available for {plantName}.</p>;
     
-    const pageTitle = `${plant.common_name} Care Guide | GardenWise`;
+    const isLoggedIn = !!userId;
 
     return (
         <div style={styles.card}>
-            {/* FIX: Removed the invalid <head> tag */}
-            
-            {/* Display Save Status Messages */}
             {saveStatus && (
                 <div style={styles.messageBox(saveStatus.isError)}>
                     {saveStatus.message}
@@ -304,13 +317,10 @@ export default function PlantDetailPage() {
                 </div>
             </div>
             
-            {/* Image and Description */}
-            <div 
-                style={styles.imagePlaceholder(plant.image_url)}
-            >
+            <div style={styles.imagePlaceholder(plant.image_url)}>
                 {!plant.image_url.includes('http') && <span>Image not available from source</span>}
             </div>
-            
+
             <p style={styles.description}>
                 {plant.description}
             </p>
@@ -329,15 +339,61 @@ export default function PlantDetailPage() {
                 ))}
             </div>
             
-            {/* Add to Collection Button */}
+            {/* Bottom Add to Collection Button */}
             <div style={styles.buttonContainer}>
+                {/* Collection Selector - Side by Side Layout */}
+                {userId && (
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '15px',
+                        maxWidth: '500px',
+                        margin: '0 auto 20px auto',
+                        justifyContent: 'center'
+                    }}>
+                        <label 
+                            htmlFor="collection-select"
+                            style={{
+                                fontSize: '0.95em',
+                                fontWeight: '600',
+                                color: GRAY_TEXT,
+                                whiteSpace: 'nowrap'
+                            }}
+                        >
+                            Save to:
+                        </label>
+                        <select 
+                            id="collection-select"
+                            value={selectedCollection}
+                            onChange={(e) => setSelectedCollection(e.target.value)}
+                            style={{
+                                ...styles.collectionSelect,
+                                flexGrow: 1,
+                                minWidth: '200px'
+                            }}
+                            disabled={saveStatus?.type === 'loading'}
+                        >
+                            {collectionNames.length > 0 ? (
+                                collectionNames.map(name => (
+                                    <option key={name} value={name}>{name}</option>
+                                ))
+                            ) : (
+                                <option value="Favorites">Favorites (will be created)</option>
+                            )}
+                        </select>
+                    </div>
+                )}
+
                 <button
                     onClick={handleSavePlant}
                     disabled={!userId}
                     style={styles.collectionButton(userId, isAdded)}
                 >
                     <LuHeart size={18} style={{ marginRight: '10px' }} />
-                    {isAdded ? "Added to Favorites" : (userId ? "Add to Favorites" : "Sign In to Collect")}
+                    {isAdded 
+                        ? `Added to ${selectedCollection}` 
+                        : (userId ? `Add to ${selectedCollection}` : "Sign In to Collect")
+                    }
                 </button>
 
                 {!userId && (
@@ -351,7 +407,6 @@ export default function PlantDetailPage() {
                     </p>
                 )}
             </div>
-
         </div>
     );
 }
