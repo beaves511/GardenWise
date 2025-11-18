@@ -148,7 +148,7 @@ export default function RootLayout({ children }) {
                 <button onClick={() => router.push('/')} style={styles.navLink}>Plants</button>
                 <button onClick={() => router.push('/collections')} style={styles.navLink}>My Collections</button>
                 <button onClick={() => router.push('/planner')} style={styles.navLink}>Garden Planner</button>
-                <button style={styles.navLinkDisabled} disabled>Forums</button>
+                <button onClick={() => router.push('/forum')} style={styles.navLink}>Forums</button>
             </div>
 
             {/* Right: Auth Buttons (Conditional Logic) */}
