@@ -7,7 +7,7 @@ import { useAIPlanner } from '../hooks/useAIPlanner';
 import { useRequireAuth } from '../hooks/useRequireAuth'; 
 
 const SYSTEM_INSTRUCTIONS = "Example: I have a small (4x8 ft) balcony garden facing west. I want to grow vegetables that can handle afternoon sun, and I need space for one tomato plant (large), basil (medium), and carrots (small/root crop). Plan a textual layout for me.";
-
+const RED_ERROR = '#EF4444';
 /**
  * AI Garden Planner Page (app/planner/page.js)
  * Implements the chat UI for planning garden layouts using the Flask/Gemini backend.
@@ -36,7 +36,7 @@ export default function AIPlannerPage() {
         return (
             <div style={styles.errorContainer}>
                 <h2 style={{color: styles.GRAY_TEXT_DARK}}>Access Denied</h2>
-                <p>The AI Garden Planner requires a secure user session.</p>
+                <p>You must be signed in to use the AI Planner.</p>
                 <button onClick={() => router.replace('/auth')} style={styles.signInButton}>
                     Go to Sign In
                 </button>
@@ -199,10 +199,10 @@ const styles = {
         transition: 'background-color 0.2s',
     },
     // New styles for Access Denied consistency
-    errorContainer: {
-        textAlign: 'center', 
-        paddingTop: '50px', 
-        minHeight: '80vh',
+    errorContainer: { 
+        textAlign: 'center',
+        paddingTop: '3rem', 
+        color: RED_ERROR, 
     },
     signInButton: {
         backgroundColor: '#EF4444', 
