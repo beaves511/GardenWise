@@ -274,3 +274,114 @@ def delete_collection_container(user_id, collection_name: str):
         )
 
     return _handle_supabase_query(query_func)
+
+def create_forum_post(user_id: str, title: str, content: str):
+    """
+    Inserts a new post into the forum_posts table.
+    """
+    post_record = {
+        "user_id": user_id,
+        "title": title,
+        "content": content,
+    }
+    
+    def query_func():
+        # Targets the 'forum_posts' table
+        return supabase.table('forum_posts').insert(post_record).execute()
+        
+    return _handle_supabase_query(query_func)
+
+def get_recent_forum_posts(user_id: str = None):
+    """
+    Retrieves the 50 most recent forum posts for the public view.
+    Posts must be joined with profiles to display the user's email/name.
+    """
+    
+    # --- CRITICAL FIX: Ensure profiles are retrieved for existing posts ---
+    
+    def query_func():
+        # Select post data and profile data (email) via a join (using PostgREST 'select' format)
+        # We join on the 'profiles' table using the foreign key relationship
+        return supabase.table('forum_posts').select('*, profiles(email)').order('created_at', desc=True).limit(50).execute()
+        
+    response = _handle_supabase_query(query_func)
+    
+    if response['status'] == 'success':
+        # The response data is a list of dictionaries. We must clean up the joined profiles structure.
+        
+        cleaned_posts = []
+        for post in response['data']:
+            
+            # CRITICAL CLEANUP: Flatten the nested profiles array
+            if 'profiles' in post and isinstance(post['profiles'], list) and len(post['profiles']) > 0:
+                post['author_email'] = post['profiles'][0]['email']
+            elif 'profiles' in post and isinstance(post['profiles'], dict):
+                 # Handle single object return if PostgREST changes
+                post['author_email'] = post['profiles']['email']
+            else:
+                 # Default if profile join fails
+                post['author_email'] = 'Anonymous User'
+                
+            del post['profiles']
+            cleaned_posts.append(post)
+            
+        response['data'] = cleaned_posts
+        return response
+        
+    return response
+
+def create_forum_comment(user_id: str, post_id: str, content: str, parent_comment_id: str = None):
+    """
+    Creates a new comment or reply to a forum post.
+    If parent_comment_id is provided, it's a nested reply.
+    """
+    comment_record = {
+        "post_id": post_id,
+        "user_id": user_id,
+        "content": content,
+    }
+    
+    # CRITICAL FIX: Only add parent_comment_id if it's not None or empty string
+    if parent_comment_id and parent_comment_id != "null":
+        comment_record["parent_comment_id"] = parent_comment_id
+    
+    def query_func():
+        return supabase.table('forum_comments').insert(comment_record).execute()
+    
+    return _handle_supabase_query(query_func)
+
+
+def get_post_comments(post_id: str):
+    """
+    Retrieves all comments for a specific post, including nested replies.
+    Joins with profiles to get user email.
+    """
+    def query_func():
+        return (
+            supabase
+            .table('forum_comments')
+            .select('*, profiles(email)')
+            .eq('post_id', post_id)
+            .order('created_at', desc=False)  # Oldest first for threading
+            .execute()
+        )
+    
+    response = _handle_supabase_query(query_func)
+    
+    if response['status'] == 'success':
+        # Clean up the nested profiles structure
+        cleaned_comments = []
+        for comment in response['data']:
+            if 'profiles' in comment and isinstance(comment['profiles'], list) and len(comment['profiles']) > 0:
+                comment['author_email'] = comment['profiles'][0]['email']
+            elif 'profiles' in comment and isinstance(comment['profiles'], dict):
+                comment['author_email'] = comment['profiles']['email']
+            else:
+                comment['author_email'] = 'Anonymous User'
+            
+            del comment['profiles']
+            cleaned_comments.append(comment)
+        
+        response['data'] = cleaned_comments
+    
+    return response

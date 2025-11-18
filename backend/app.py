@@ -52,6 +52,14 @@ except ImportError as e:
     print(f"AI Planner Blueprint failed to import. Details: {e}")
     ai_bp = Blueprint('ai', __name__)
 
+try:
+    from api.forum import forum_bp
+    FORUM_BP_LOADED = True
+except ImportError as e:
+    FORUM_BP_LOADED = False
+    print(f"Forum Blueprint failed to import. Details: {e}")
+    forum_bp = Blueprint('forum', __name__)
+
 # Initialize Flask App
 app = Flask(__name__)
 # Configure CORS to allow requests from Next.js (port 3000)
@@ -83,6 +91,11 @@ if AI_BP_LOADED:
     app.register_blueprint(ai_bp, url_prefix='/api/v1')
 else:
     print("AI Planner Blueprint not loaded. AI endpoints are unavailable.")
+
+if FORUM_BP_LOADED:
+    app.register_blueprint(forum_bp, url_prefix='/api/v1')
+else:
+    print("Forum Blueprint not loaded. Forum endpoints are unavailable.")
 
 @app.route('/api/v1/test-db', methods=['POST'])
 def test_db_insert():
