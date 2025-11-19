@@ -5,17 +5,20 @@ from dotenv import load_dotenv
 
 # --- CONFIGURATION & ENVIRONMENT VARIABLE CHECK ---
 
+# Get the directory where this script is located
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+DOTENV_PATH = os.path.join(SCRIPT_DIR, '.env')
+
 # Explicitly check for the presence of the .env file for diagnostic purposes
-DOTENV_PATH = os.path.join(os.getcwd(), '.env')
 if not os.path.exists(DOTENV_PATH):
     print("-" * 70)
-    print("WARNING: .env file not found in the current working directory.")
+    print("WARNING: .env file not found in the backend directory.")
     print(f"Expected path: {DOTENV_PATH}")
-    print("Ensure terminal is running from the 'backend/' directory.")
+    print("Ensure .env file exists in the 'backend/' directory.")
     print("-" * 70)
 
-# Load environment variables. This must run in every file that needs them.
-load_dotenv()
+# Load environment variables from the .env file in the same directory as this script
+load_dotenv(DOTENV_PATH)
 
 # Define and validate required configuration variables
 RAPIDAPI_KEY = os.getenv("RAPID_API_KEY")

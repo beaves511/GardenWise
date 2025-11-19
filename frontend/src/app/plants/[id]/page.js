@@ -278,7 +278,7 @@ export default function PlantDetailPage() {
     };
 
     // --- RENDERING LOGIC ---
-    if (loading) return <p style={{ textAlign: 'center', padding: '50px', fontSize: '1.2em' }}>Searching the database for {plantName}... 🪴</p>;
+    if (loading) return <p style={{ textAlign: 'center', padding: '50px', fontSize: '1.2em' }}>Searching for {plantName}... 🪴</p>;
     
     if (error) return (
         <div style={styles.card}>
