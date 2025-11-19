@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-
-const COLLECTIONS_API_URL = 'http://localhost:5000/api/v1/collections';
+import { authenticatedFetch } from '../utils/api';
 
 /**
  * ViewModel Hook for managing a user's collection data.
@@ -48,16 +47,8 @@ export const useCollections = () => {
         }
 
         try {
-            // We use the DELETE endpoint, but the ID must be retrieved. 
-            // Since we don't have the parent collection ID in state, 
-            // we'll hit a hypothetical new endpoint that deletes by name.
-            
-            // NOTE: The most robust architecture would expose a /collections/container/<name> DELETE endpoint.
-            const response = await fetch(`http://localhost:5000/api/v1/collections/container/${encodeURIComponent(collectionName)}`, {
+            const response = await authenticatedFetch(`/collections/container/${encodeURIComponent(collectionName)}`, {
                 method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
             });
 
             if (response.ok) {
@@ -68,11 +59,66 @@ export const useCollections = () => {
                 throw new Error(data.message || `Failed to delete collection: Server error.`);
             }
         } catch (e) {
+            if (e.message.includes('Session expired')) {
+                return;
+            }
             console.error('Delete collection error:', e);
             alert(`Error: ${e.message}`);
         }
     }, [collections, refreshCollections]); // Dependency on collections ensures we have up-to-date IDs
 
+    // --- NEW FUNCTION: Renames a collection ---
+    const renameCollection = useCallback(async (oldName, newName) => {
+        const token = localStorage.getItem('supabase.token');
+
+        if (!oldName || !newName) {
+            alert('Collection names cannot be empty.');
+            return { success: false };
+        }
+
+        const trimmedNewName = newName.trim();
+        if (!trimmedNewName) {
+            alert('New collection name cannot be empty.');
+            return { success: false };
+        }
+
+        if (oldName === trimmedNewName) {
+            alert('New name must be different from the old name.');
+            return { success: false };
+        }
+
+        try {
+            const response = await authenticatedFetch('/collections/rename', {
+                method: 'PUT',
+                body: JSON.stringify({
+                    old_name: oldName,
+                    new_name: trimmedNewName,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                refreshCollections();
+                return { success: true, message: data.message };
+            } else {
+                // Handle specific error codes
+                if (response.status === 409) {
+                    return { success: false, message: data.message || 'A collection with this name already exists.' };
+                } else if (response.status === 404) {
+                    return { success: false, message: data.message || 'Collection not found.' };
+                } else {
+                    return { success: false, message: data.message || data.error || 'Failed to rename collection.' };
+                }
+            }
+        } catch (e) {
+            if (e.message.includes('Session expired')) {
+                return { success: false, message: 'Session expired. Please log in again.' };
+            }
+            console.error('Rename collection error:', e);
+            return { success: false, message: `Error: ${e.message}` };
+        }
+    }, [refreshCollections]);
 
     // Memoized function for fetching data
     const fetchData = useCallback(async () => {
@@ -90,25 +136,18 @@ export const useCollections = () => {
         setError(null);
 
         try {
-            const response = await fetch(COLLECTIONS_API_URL, {
+            const response = await authenticatedFetch('/collections', {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
             });
 
-            if (response.status === 401) {
-                throw new Error("Invalid or expired session. Please sign in again.");
-            }
-            
             if (!response.ok) {
                 let errorDetails = "Server Error.";
-                
+
                 // CRITICAL FIX: Explicitly check for 500 status to direct debugging
                 if (response.status === 500) {
                      throw new Error(`Critical Server Crash (500). Please check Flask console for database traceback.`);
                 }
-                
+
                 try {
                     const errorData = await response.json();
                     errorDetails = errorData.message || `API Error (Status ${response.status}).`;
@@ -119,15 +158,11 @@ export const useCollections = () => {
             }
 
             const apiResponse = await response.json();
-            
-            // --- CRITICAL DEBUG LINE ---
-            console.log("DEBUG: Final API Response Data:", apiResponse);
-            // ---------------------------
 
             // --- FINAL FIX: Access the nested 'data' property if it exists, otherwise use the response object ---
             // The data structure is expected to be: {"status": "success", "data": {CollectionName: [...]}}
             const finalData = apiResponse.data || apiResponse;
-            
+
             if (Object.keys(finalData).length > 0) {
                 // If it has keys (collection names), it's a success
                 setCollections(finalData);
@@ -137,11 +172,15 @@ export const useCollections = () => {
             }
 
         } catch (e) {
+            if (e.message.includes('Session expired')) {
+                // Session expired, authenticatedFetch already handled redirect
+                return;
+            }
             console.error('Error fetching collections:', e);
             // FINAL FIX: Ensure the error message is always a string
             setError(e.message || 'A critical network failure occurred.');
             // If fetching fails, clear the collections state
-            setCollections({}); 
+            setCollections({});
         } finally {
             setIsLoading(false);
         }
@@ -158,6 +197,7 @@ export const useCollections = () => {
         userId,
         refreshCollections,
         deleteCollection, // Expose the delete function
+        renameCollection, // Expose the rename function
     };
 };
 

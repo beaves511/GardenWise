@@ -9,12 +9,21 @@ yarn-error.log
 out/
 next-env.d.ts
 
+# Testing
+coverage/
+.jest/
+
 # Python
 __pycache__/
 *.pyc
 .env
 venv/
 instance/
+.pytest_cache/
+.coverage
+*.coverage
+coverage.xml
+htmlcov/
 
 # IDEs and editors
 .vscode/

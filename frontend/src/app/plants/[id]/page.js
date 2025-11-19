@@ -188,12 +188,6 @@ export default function PlantDetailPage() {
     const [userId, setUserId] = useState(null);
     const [isAdded, setIsAdded] = useState(false);
 
-    // Debug: Log collections when they change
-    useEffect(() => {
-        console.log('Collections from hook:', collectionNames);
-        console.log('Is picker loading:', isPickerLoading);
-    }, [collectionNames, isPickerLoading]);
-
     // --- EFFECT: INITIAL DATA FETCH ---
     useEffect(() => {
         const uid = localStorage.getItem('supabase.userId');
@@ -203,7 +197,9 @@ export default function PlantDetailPage() {
             setLoading(true);
             setError(null);
 
-            const API_URL = `http://localhost:5000/api/v1/plants?name=${encodeURIComponent(plantName)}`;
+            // Get the plant type from localStorage (set by the type selector)
+            const plantType = localStorage.getItem('selectedPlantType') || 'indoor';
+            const API_URL = `http://localhost:5000/api/v1/plants?name=${encodeURIComponent(plantName)}&type=${plantType}`;
 
             try {
                 const response = await fetch(API_URL);
@@ -243,8 +239,6 @@ export default function PlantDetailPage() {
 
         setSaveStatus({type: 'loading', message: `Saving to ${selectedCollection}...`});
         const token = localStorage.getItem('supabase.token');
-
-        console.log('Sending JWT Token:', token ? token.substring(0, 10) + '...' : 'MISSING');
 
         if (!plant) {
             setSaveStatus({ message: 'Cannot save empty plant data.', isError: true });

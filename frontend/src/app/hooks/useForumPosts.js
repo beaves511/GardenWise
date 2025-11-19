@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-
-const FORUM_API_URL = 'http://localhost:5000/api/v1/forum/posts';
+import { authenticatedFetch } from '../utils/api';
 
 /**
  * ViewModel Hook for Forum Posts
@@ -23,13 +22,12 @@ export const useForumPosts = () => {
     const fetchPosts = useCallback(async () => {
         setIsLoading(true);
         setError(null);
-        
-        try {
-            const token = localStorage.getItem('supabase.token'); 
-            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
-            const response = await fetch(FORUM_API_URL, { headers });
-            
+        try {
+            const response = await authenticatedFetch('/forum/posts', {
+                method: 'GET',
+            });
+
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.error || `Failed to load posts. Status: ${response.status}`);
@@ -39,6 +37,9 @@ export const useForumPosts = () => {
             setPosts(Array.isArray(data) ? data : []);
 
         } catch (e) {
+            if (e.message.includes('Session expired')) {
+                return;
+            }
             console.error("Forum Fetch Error:", e);
             setError(e.message);
         } finally {
@@ -49,17 +50,12 @@ export const useForumPosts = () => {
     const createPost = useCallback(async (title, content) => {
         setIsPosting(true);
         setError(null);
-        
+
         try {
-            const token = localStorage.getItem('supabase.token');
             const payload = { title, content };
 
-            const response = await fetch(FORUM_API_URL, {
+            const response = await authenticatedFetch('/forum/posts', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
                 body: JSON.stringify(payload),
             });
 
@@ -68,7 +64,7 @@ export const useForumPosts = () => {
             if (!response.ok || data.status !== 'success') {
                 throw new Error(data.message || data.error || `Post failed (Status ${response.status}).`);
             }
-            
+
             // Optimistic UI update
             const newPost = {
                 id: data.post_id || Date.now(),
@@ -78,12 +74,15 @@ export const useForumPosts = () => {
                 created_at: new Date().toISOString(),
                 author_email: 'You'
             };
-            
+
             setPosts(prevPosts => [newPost, ...prevPosts]);
-            
+
             return { success: true, message: 'Post created successfully!' };
 
         } catch (e) {
+            if (e.message.includes('Session expired')) {
+                return { success: false, error: 'Session expired. Please log in again.' };
+            }
             console.error("Post Submission Error:", e);
             setError(e.message);
             return { success: false, error: e.message };

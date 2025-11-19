@@ -21,10 +21,14 @@ export function usePlantDetails(plantName) {
         setLoading(true);
         setError(null);
         setImageError(false);
-        
+
         const encodedPlantName = encodeURIComponent(plantName);
-        // CRITICAL: The URL to the Flask backend
-        const API_URL = `http://localhost:5000/api/v1/plants?name=${encodedPlantName}`;
+
+        // Get the plant type from localStorage (set by the modal)
+        const plantType = localStorage.getItem('selectedPlantType') || 'indoor';
+
+        // CRITICAL: The URL to the Flask backend with plant type parameter
+        const API_URL = `http://localhost:5000/api/v1/plants?name=${encodedPlantName}&type=${plantType}`;
 
         fetch(API_URL)
             .then(response => {

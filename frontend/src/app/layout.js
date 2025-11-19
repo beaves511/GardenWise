@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react'; // Added useCallback
 
 // --- STYLING CONSTANTS (Matching Your Preferred Aesthetic) ---
@@ -37,7 +37,17 @@ const styles = {
         textDecoration: 'none',
         color: GRAY_TEXT,
         fontSize: '0.95em',
-        fontWeight: '600', 
+        fontWeight: '600',
+        cursor: 'pointer',
+        transition: 'color 0.2s',
+    },
+    navLinkActive: {
+        background: 'none',
+        border: 'none',
+        textDecoration: 'none',
+        color: GREEN_PRIMARY,
+        fontSize: '0.95em',
+        fontWeight: '600',
         cursor: 'pointer',
         transition: 'color 0.2s',
     },
@@ -122,7 +132,7 @@ export default function RootLayout({ children }) {
         body {
             margin: 0;
             font-family: 'Inter', sans-serif;
-            background-color: #F9FAF9; 
+            background-color: #F9FAF9;
             /* Improve font rendering */
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
@@ -130,42 +140,65 @@ export default function RootLayout({ children }) {
     `;
 
     // --- Navigation Bar Component ---
-    const NavBar = () => (
-        <header style={styles.navBar}>
-            {/* Left: Logo and Brand Name (Functional) */}
-            <div style={styles.navLeft}>
-                <h1 
-                    style={styles.logo}
-                    onClick={() => router.push('/')}
-                >
-                    <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>🌱</span>
-                    GardenWise
-                </h1>
-            </div>
+    const NavBar = () => {
+        const pathname = usePathname();
 
-            {/* Center: Main Navigation Links (Functional) */}
-            <div style={styles.navCenter}>
-                <button onClick={() => router.push('/')} style={styles.navLink}>Plants</button>
-                <button onClick={() => router.push('/collections')} style={styles.navLink}>My Collections</button>
-                <button onClick={() => router.push('/planner')} style={styles.navLink}>Garden Planner</button>
-                <button onClick={() => router.push('/forum')} style={styles.navLink}>Forums</button>
-            </div>
+        return (
+            <header style={styles.navBar}>
+                {/* Left: Logo and Brand Name (Functional) */}
+                <div style={styles.navLeft}>
+                    <h1
+                        style={styles.logo}
+                        onClick={() => router.push('/')}
+                    >
+                        <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>🌱</span>
+                        GardenWise
+                    </h1>
+                </div>
 
-            {/* Right: Auth Buttons (Conditional Logic) */}
-            <div style={styles.navRight}>
-                {isLoggedIn ? (
-                    <button onClick={handleSignOut} style={styles.signOutButton}>
-                        Sign Out
+                {/* Center: Main Navigation Links (Functional) */}
+                <div style={styles.navCenter}>
+                    <button
+                        onClick={() => router.push('/collections')}
+                        style={pathname === '/collections' ? styles.navLinkActive : styles.navLink}
+                    >
+                        My Collections
                     </button>
-                ) : (
-                    <>
-                        <button onClick={() => router.push('/auth')} style={styles.navLink}>Sign In</button>
-                        {/* The Sign Up link is handled via the in-page toggle */}
-                    </>
-                )}
-            </div>
-        </header>
-    );
+                    <button
+                        onClick={() => router.push('/planner')}
+                        style={pathname === '/planner' ? styles.navLinkActive : styles.navLink}
+                    >
+                        Garden Planner
+                    </button>
+                    <button
+                        onClick={() => router.push('/forum')}
+                        style={pathname.startsWith('/forum') ? styles.navLinkActive : styles.navLink}
+                    >
+                        Forums
+                    </button>
+                </div>
+
+                {/* Right: Auth Buttons (Conditional Logic) */}
+                <div style={styles.navRight}>
+                    {isLoggedIn ? (
+                        <>
+                            <button onClick={() => router.push('/profile')} style={styles.navLink}>
+                                Profile
+                            </button>
+                            <button onClick={handleSignOut} style={styles.signOutButton}>
+                                Sign Out
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <button onClick={() => router.push('/auth')} style={styles.navLink}>Sign In</button>
+                            {/* The Sign Up link is handled via the in-page toggle */}
+                        </>
+                    )}
+                </div>
+            </header>
+        );
+    };
 
     return (
         <html lang="en">

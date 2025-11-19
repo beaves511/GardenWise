@@ -1,6 +1,6 @@
 "use client"; // Required because this component uses useState and useRouter
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation'; 
 
 // STYLING CONSTANTS 
@@ -85,12 +85,53 @@ const styles = {
     padding: '20px 50px',
     color: '#9CA3AF',
     fontSize: '0.85em',
+  },
+  plantTypeSelector: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '10px',
+    marginBottom: '20px',
+  },
+  typeButton: {
+    padding: '8px 20px',
+    fontSize: '0.9em',
+    fontWeight: '600',
+    border: `2px solid ${GREEN_PRIMARY}`,
+    borderRadius: '20px',
+    backgroundColor: 'white',
+    color: GREEN_PRIMARY,
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+  },
+  typeButtonActive: {
+    padding: '8px 20px',
+    fontSize: '0.9em',
+    fontWeight: '600',
+    border: `2px solid ${GREEN_PRIMARY}`,
+    borderRadius: '20px',
+    backgroundColor: GREEN_PRIMARY,
+    color: 'white',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+  },
+  plantTypeLabel: {
+    fontSize: '0.85em',
+    color: GRAY_TEXT,
+    marginBottom: '10px',
+    fontWeight: '500',
   }
 };
 
 export default function HomePage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [plantType, setPlantType] = useState('indoor');
   const router = useRouter();
+
+  // Load plant type from localStorage on mount
+  useEffect(() => {
+    const savedType = localStorage.getItem('selectedPlantType') || 'indoor';
+    setPlantType(savedType);
+  }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -98,6 +139,11 @@ export default function HomePage() {
 
     // Direct navigation to the detail page using the search term
     router.push(`/plants/${encodeURIComponent(searchTerm)}`);
+  };
+
+  const handlePlantTypeChange = (newType) => {
+    setPlantType(newType);
+    localStorage.setItem('selectedPlantType', newType);
   };
 
   return (
@@ -111,13 +157,52 @@ export default function HomePage() {
           Track your plants, get expert care advice, plan your perfect garden, and connect with a thriving community of gardeners.
         </p>
 
+        {/* Plant Type Selector */}
+        <div style={styles.plantTypeSelector}>
+          <p style={styles.plantTypeLabel}>Search in:</p>
+          <button
+            type="button"
+            onClick={() => handlePlantTypeChange('indoor')}
+            style={plantType === 'indoor' ? styles.typeButtonActive : styles.typeButton}
+            onMouseOver={(e) => {
+              if (plantType !== 'indoor') {
+                e.target.style.backgroundColor = GREEN_LIGHT;
+              }
+            }}
+            onMouseOut={(e) => {
+              if (plantType !== 'indoor') {
+                e.target.style.backgroundColor = 'white';
+              }
+            }}
+          >
+            Indoor Plants
+          </button>
+          <button
+            type="button"
+            onClick={() => handlePlantTypeChange('other')}
+            style={plantType === 'other' ? styles.typeButtonActive : styles.typeButton}
+            onMouseOver={(e) => {
+              if (plantType !== 'other') {
+                e.target.style.backgroundColor = GREEN_LIGHT;
+              }
+            }}
+            onMouseOut={(e) => {
+              if (plantType !== 'other') {
+                e.target.style.backgroundColor = 'white';
+              }
+            }}
+          >
+            Other Plants
+          </button>
+        </div>
+
         {/* Search Input Area */}
         <form onSubmit={handleSearch} style={styles.searchForm}>
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search for plants, care tips, or garden advice..."
+            placeholder="Search for plants..."
             style={styles.searchInput}
           />
           <button type="submit" style={styles.searchButton}>

@@ -12,14 +12,7 @@ def get_posts_route():
     Public endpoint to retrieve the list of recent forum posts.
     """
     response = get_recent_forum_posts()
-    
-    # DEBUG: Check what we're getting back
-    print(f"DEBUG get_posts_route - Response status: {response['status']}")
-    if response['status'] == 'success':
-        print(f"DEBUG get_posts_route - Number of posts: {len(response['data'])}")
-        if len(response['data']) > 0:
-            print(f"DEBUG get_posts_route - First post sample: {response['data'][0]}")
-    
+
     if response['status'] == 'success':
         return jsonify(response['data']), 200
     
@@ -56,12 +49,8 @@ def get_comments_route(post_id):
     """
     Public endpoint to retrieve all comments for a specific post.
     """
-    print(f"DEBUG: Fetching comments for post {post_id}")  # DEBUG
     response = get_post_comments(post_id)
-    
-    print(f"DEBUG: Response status: {response['status']}")  # DEBUG
-    print(f"DEBUG: Response data: {response.get('data', 'No data')}")  # DEBUG
-    
+
     if response['status'] == 'success':
         return jsonify(response['data']), 200
     
@@ -78,26 +67,19 @@ def create_comment_route(post_id):
     Protected endpoint to create a new comment or reply on a post.
     """
     data = request.get_json()
-    print(f"DEBUG: Received data: {data}")  # DEBUG
-    
+
     content = data.get('content')
     parent_comment_id = data.get('parent_comment_id')
-    
-    print(f"DEBUG: content = {content}")  # DEBUG
-    print(f"DEBUG: parent_comment_id = {parent_comment_id}")  # DEBUG
-    print(f"DEBUG: parent_comment_id type = {type(parent_comment_id)}")  # DEBUG
-    
+
     if not content:
         return jsonify({"error": "Missing content for the comment."}), 400
     
     user_id = request.user_id
-    
+
     # FIX: Only pass parent_comment_id if it actually exists and is not None/empty
     if parent_comment_id and parent_comment_id != "null":
-        print(f"DEBUG: Creating reply to comment {parent_comment_id}")
         response = create_forum_comment(user_id, post_id, content, parent_comment_id)
     else:
-        print(f"DEBUG: Creating top-level comment")
         response = create_forum_comment(user_id, post_id, content)
     
     if response['status'] == 'success':
