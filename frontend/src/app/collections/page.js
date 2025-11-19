@@ -429,6 +429,33 @@ const CollectionSettingsMenu = ({ collectionName, onDeleteCollection, onRenameCl
 };
 
 
+// --- Helper Component: Care Info Popover ---
+
+const CareInfoPopover = ({ icon: Icon, label, text, onClose }) => {
+    const popoverRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (popoverRef.current && !popoverRef.current.contains(event.target)) {
+                onClose();
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [onClose]);
+
+    return (
+        <div ref={popoverRef} style={styles.carePopover}>
+            <div style={styles.carePopoverHeader}>
+                <Icon size={16} style={{color: GREEN_PRIMARY, marginRight: '6px'}} />
+                <span style={styles.carePopoverLabel}>{label}</span>
+            </div>
+            <div style={styles.carePopoverText}>{text}</div>
+        </div>
+    );
+};
+
 // --- Helper Component: Collection Card ---
 
 const CollectionCard = ({ name, plants, router, onDelete, onDeleteCollection, onRename }) => {
@@ -444,34 +471,46 @@ const CollectionCard = ({ name, plants, router, onDelete, onDeleteCollection, on
     const PlantItem = ({ plant, index }) => {
         const details = plant.plant_details_json;
         const common_name = details.common_name || 'Unnamed Plant';
+        const [activePopover, setActivePopover] = useState(null);
 
         const handleDelete = (e) => {
             e.stopPropagation();
             onDelete(plant.id, common_name);
         };
 
+        const handleIconClick = (e, popoverType) => {
+            e.stopPropagation();
+            setActivePopover(activePopover === popoverType ? null : popoverType);
+        };
+
         const backgroundColor = index % 2 === 0 ? 'white' : GRAY_HOVER;
 
         const imageUrl = details.image_url;
-        
+
         const careDetails = details.care_instructions || {};
 
+        const handlePlantClick = () => {
+            // Get the plant type from the saved data and pass it as a query parameter
+            const plantType = details.plant_type || 'indoor';
+            router.push(`/plants/${encodeURIComponent(common_name)}?type=${plantType}`);
+        };
+
         return (
-            <div 
-                key={plant.id} 
+            <div
+                key={plant.id}
                 style={{...styles.plantItem, backgroundColor: backgroundColor}}
-                onClick={() => router.push(`/plants/${encodeURIComponent(common_name)}`)}
+                onClick={handlePlantClick}
             >
                 <div style={styles.itemSectionNameMerged}>
-                    
+
                     {imageUrl ? (
                         <img
-                            src={imageUrl} 
-                            alt={common_name} 
-                            width={45} 
-                            height={45} 
-                            style={styles.plantImage} 
-                            onError={(e) => e.target.src = previewImage} 
+                            src={imageUrl}
+                            alt={common_name}
+                            width={45}
+                            height={45}
+                            style={styles.plantImage}
+                            onError={(e) => e.target.src = previewImage}
                         />
                     ) : (
                         <div style={styles.noImagePlaceholder}>
@@ -482,14 +521,46 @@ const CollectionCard = ({ name, plants, router, onDelete, onDeleteCollection, on
                     <div style={{marginLeft: '10px'}}>
                         <div style={styles.plantName}>{common_name}</div>
                         <div style={styles.careIconWrapper}>
-                            {isDataPresent(careDetails.watering) && <LuDroplet size={14} style={styles.careIcon} title={careDetails.watering} />}
-                            {isDataPresent(careDetails.light) && <LuSun size={14} style={styles.careIcon} title={careDetails.light} />}
+                            {isDataPresent(careDetails.watering) && (
+                                <div style={styles.careIconContainer}>
+                                    <LuDroplet
+                                        size={14}
+                                        style={{...styles.careIcon, cursor: 'pointer'}}
+                                        onClick={(e) => handleIconClick(e, 'water')}
+                                    />
+                                    {activePopover === 'water' && (
+                                        <CareInfoPopover
+                                            icon={LuDroplet}
+                                            label="Watering"
+                                            text={careDetails.watering}
+                                            onClose={() => setActivePopover(null)}
+                                        />
+                                    )}
+                                </div>
+                            )}
+                            {isDataPresent(careDetails.light) && (
+                                <div style={styles.careIconContainer}>
+                                    <LuSun
+                                        size={14}
+                                        style={{...styles.careIcon, cursor: 'pointer'}}
+                                        onClick={(e) => handleIconClick(e, 'sun')}
+                                    />
+                                    {activePopover === 'sun' && (
+                                        <CareInfoPopover
+                                            icon={LuSun}
+                                            label="Light"
+                                            text={careDetails.light}
+                                            onClose={() => setActivePopover(null)}
+                                        />
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
 
-                <button 
-                    onClick={handleDelete} 
+                <button
+                    onClick={handleDelete}
                     style={styles.plantDeleteButton}
                 >
                     <LuTrash2 size={16} />
@@ -727,9 +798,41 @@ const styles = {
         gap: '8px',
         color: GREEN_PRIMARY,
     },
+    careIconContainer: {
+        position: 'relative',
+    },
     careIcon: {
         minWidth: '16px',
         minHeight: '16px',
+    },
+    carePopover: {
+        position: 'absolute',
+        top: '24px',
+        left: '0',
+        backgroundColor: 'white',
+        border: `2px solid ${GREEN_PRIMARY}`,
+        borderRadius: '0.5rem',
+        padding: '12px',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+        zIndex: 1000,
+        minWidth: '200px',
+        maxWidth: '300px',
+    },
+    carePopoverHeader: {
+        display: 'flex',
+        alignItems: 'center',
+        marginBottom: '6px',
+        fontWeight: '600',
+        fontSize: '0.9rem',
+        color: GRAY_TEXT_DARK,
+    },
+    carePopoverLabel: {
+        color: GRAY_TEXT_DARK,
+    },
+    carePopoverText: {
+        fontSize: '0.95rem',
+        color: GRAY_TEXT_DARK,
+        lineHeight: '1.4',
     },
     plantDeleteButton: {
         background: 'none',

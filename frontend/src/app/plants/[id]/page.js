@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useCollectionPicker } from '../../hooks/useCollectionPicker';
 import Link from 'next/link';
 import { LuLeaf, LuSun, LuThermometer, LuHeart, LuTriangleAlert } from 'react-icons/lu';
@@ -177,14 +177,16 @@ export default function PlantDetailPage() {
     const { id: plantNameEncoded } = useParams();
     const plantName = decodeURIComponent(plantNameEncoded);
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     const [plant, setPlant] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [saveStatus, setSaveStatus] = useState(null);
     const [selectedCollection, setSelectedCollection] = useState('Favorites');
+    const [actualPlantType, setActualPlantType] = useState(null);
 
-    const { collections: collectionNames, isLoading: isPickerLoading, refreshCollections } = useCollectionPicker(); 
+    const { collections: collectionNames, isLoading: isPickerLoading, refreshCollections } = useCollectionPicker();
     const [userId, setUserId] = useState(null);
     const [isAdded, setIsAdded] = useState(false);
 
@@ -192,23 +194,44 @@ export default function PlantDetailPage() {
     useEffect(() => {
         const uid = localStorage.getItem('supabase.userId');
         if (uid) setUserId(uid);
-        
+
         const fetchPlant = async () => {
             setLoading(true);
             setError(null);
 
-            // Get the plant type from localStorage (set by the type selector)
-            const plantType = localStorage.getItem('selectedPlantType') || 'indoor';
-            const API_URL = `http://localhost:5000/api/v1/plants?name=${encodeURIComponent(plantName)}&type=${plantType}`;
+            // Check query parameter first (from collections), then fall back to localStorage (from type selector)
+            const typeFromUrl = searchParams.get('type');
+            let plantType = typeFromUrl || localStorage.getItem('selectedPlantType') || 'indoor';
+
+            console.log(`Fetching plant with type: ${plantType}${typeFromUrl ? ' (from saved plant data)' : ' (from type selector)'}`);
+
+            let API_URL = `http://localhost:5000/api/v1/plants?name=${encodeURIComponent(plantName)}&type=${plantType}`;
 
             try {
-                const response = await fetch(API_URL);
-                const data = await response.json();
+                let response = await fetch(API_URL);
+                let data = await response.json();
 
+                // If first attempt fails, try the other plant type
                 if (!response.ok) {
-                    throw new Error(data.message || `Failed to fetch plant details. Status: ${response.status}`);
+                    console.log(`Failed to fetch with type '${plantType}', trying alternate type...`);
+                    const alternateType = plantType === 'indoor' ? 'other' : 'indoor';
+                    API_URL = `http://localhost:5000/api/v1/plants?name=${encodeURIComponent(plantName)}&type=${alternateType}`;
+
+                    response = await fetch(API_URL);
+                    data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.message || `Failed to fetch plant details. Status: ${response.status}`);
+                    }
+
+                    // Update plantType to the one that worked
+                    plantType = alternateType;
+                    console.log(`Successfully found plant with type '${alternateType}'`);
                 }
+
                 setPlant(data);
+                // Store the actual type used for successful fetch
+                setActualPlantType(plantType);
             } catch (err) {
                 console.error("Plant Detail Fetch Error:", err);
                 setError(err.message);
@@ -220,7 +243,7 @@ export default function PlantDetailPage() {
         if (plantName) {
             fetchPlant();
         }
-    }, [plantName]);
+    }, [plantName, searchParams]);
 
     // Set the default collection to the first available one
     useEffect(() => {
@@ -247,7 +270,17 @@ export default function PlantDetailPage() {
 
         try {
             const API_URL = 'http://localhost:5000/api/v1/collections';
-            
+
+            // Add plant_type to the plant data before saving
+            // Use the actual type that was used to successfully fetch this plant
+            const plantDataWithType = {
+                ...plant,
+                plant_type: actualPlantType || 'indoor'
+            };
+
+            console.log('Saving plant with type:', actualPlantType);
+            console.log('Plant data being saved:', plantDataWithType);
+
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: {
@@ -255,7 +288,7 @@ export default function PlantDetailPage() {
                     'Authorization': `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                    plant_data: plant,
+                    plant_data: plantDataWithType,
                     collection_name: selectedCollection,
                 }),
             });
