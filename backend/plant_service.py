@@ -35,9 +35,9 @@ PERENUAL_BASE_URL = "https://perenual.com/api"
 if not RAPIDAPI_KEY or not RAPIDAPI_HOST or not RAPIDAPI_BASE_URL:
     missing_vars = []
     if not RAPIDAPI_KEY:
-        missing_vars.append("RAPIDAPI_KEY")
+        missing_vars.append("RAPID_API_KEY")
     if not RAPIDAPI_HOST:
-        missing_vars.append("RAPIDAPI_HOST")
+        missing_vars.append("RAPID_API_HOST")
     if not RAPIDAPI_BASE_URL:
         missing_vars.append("RAPIDAPI_BASE_URL")
 
