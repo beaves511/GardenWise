@@ -13,6 +13,13 @@ import os
 # Add backend directory to path for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+# Mock environment variables BEFORE importing plant_service
+# This prevents the module initialization from failing due to missing .env file
+os.environ['RAPID_API_KEY'] = 'test_rapid_api_key'
+os.environ['RAPID_API_HOST'] = 'test.rapidapi.com'
+os.environ['RAPIDAPI_BASE_URL'] = 'https://test.rapidapi.com/search'
+os.environ['PLANT_API_KEY'] = 'test_plant_api_key'
+
 import plant_service
 
 
