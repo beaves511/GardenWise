@@ -2,12 +2,10 @@
 
 import { useCollections } from '../hooks/useCollections';
 import { useRouter } from 'next/navigation';
+import { authenticatedFetch } from '../utils/api';
 // import Image from 'next/image';
-import { LuDroplet, LuSun, LuSettings, LuTrash2, LuPencil, LuArchive, LuImageOff, LuX } from 'react-icons/lu'; 
+import { LuDroplet, LuSun, LuSettings, LuTrash2, LuPencil, LuArchive, LuImageOff, LuX } from 'react-icons/lu';
 import { useState, useEffect, useRef } from 'react';
-
-// TOP LEVEL DEBUG LOG
-console.log('🌿 Collections page component file loaded');
 
 // --- STYLING CONSTANTS ---
 const GREEN_PRIMARY = '#10B981';
@@ -41,15 +39,9 @@ const CreateCollectionModal = ({ userId, onClose, refreshCollections }) => {
         setError(null);
         setIsLoading(true);
 
-        const token = localStorage.getItem('supabase.token');
-        
         try {
-            const response = await fetch(`http://localhost:5000/api/v1/collections/create`, {
+            const response = await authenticatedFetch('/collections/create', {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
                 body: JSON.stringify({ collection_name: name, user_id: userId }),
             });
 
@@ -64,6 +56,9 @@ const CreateCollectionModal = ({ userId, onClose, refreshCollections }) => {
             }
 
         } catch (e) {
+            if (e.message.includes('Session expired')) {
+                return;
+            }
             console.error('Modal submit error:', e);
             setError(e.message);
         } finally {
@@ -103,6 +98,68 @@ const CreateCollectionModal = ({ userId, onClose, refreshCollections }) => {
     );
 };
 
+// --- RENAME COLLECTION MODAL COMPONENT ---
+
+const RenameCollectionModal = ({ currentName, onClose, onRename }) => {
+    const [newName, setNewName] = useState(currentName);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError(null);
+        setIsLoading(true);
+
+        try {
+            const result = await onRename(currentName, newName);
+
+            if (result.success) {
+                alert(result.message || `Collection renamed successfully!`);
+                onClose();
+            } else {
+                setError(result.message || 'Failed to rename collection.');
+            }
+        } catch (e) {
+            console.error('Modal submit error:', e);
+            setError(e.message || 'An error occurred.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <div style={modalStyles.overlay}>
+            <div style={modalStyles.modal}>
+                <div style={modalStyles.header}>
+                    <h3 style={modalStyles.title}>Rename Collection</h3>
+                    <button onClick={onClose} style={modalStyles.closeButton} disabled={isLoading}>
+                        <LuX size={20} />
+                    </button>
+                </div>
+
+                {error && <div style={styles.errorBox}>{error}</div>}
+
+                <form onSubmit={handleSubmit} style={modalStyles.form}>
+                    <input
+                        type="text"
+                        placeholder="Enter new collection name"
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        required
+                        minLength={3}
+                        style={modalStyles.input}
+                        disabled={isLoading}
+                        autoFocus
+                    />
+                    <button type="submit" style={modalStyles.submitButton} disabled={isLoading || newName.length < 3}>
+                        {isLoading ? 'Renaming...' : 'Rename Collection'}
+                    </button>
+                </form>
+            </div>
+        </div>
+    );
+};
+
 
 // --- GLOBAL HELPER FUNCTIONS ---
 
@@ -111,25 +168,23 @@ const handleDeletePlant = async (plantId, commonName, refreshCollections) => {
         return;
     }
 
-    const token = localStorage.getItem('supabase.token');
-    
     try {
-        const response = await fetch(`http://localhost:5000/api/v1/collections/${plantId}`, {
+        const response = await authenticatedFetch(`/collections/${plantId}`, {
             method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
         });
 
         if (response.ok) {
             alert(`SUCCESS! ${commonName} deleted.`);
-            refreshCollections(); 
+            refreshCollections();
         } else {
             const data = await response.json();
             alert(`FAILURE! Could not delete plant: ${data.message || 'Server error.'}`);
         }
 
     } catch (e) {
+        if (e.message.includes('Session expired')) {
+            return;
+        }
         console.error('Frontend delete error:', e);
         alert('A network error occurred while trying to delete the plant.');
     }
@@ -138,20 +193,13 @@ const handleDeletePlant = async (plantId, commonName, refreshCollections) => {
 const handleDeleteCollectionContainer = async (collectionName, collections, refreshCollections) => {
     const collectionList = collections[collectionName] || [];
 
-    console.log(`[DELETE COLLECTION] Function Fired for: ${collectionName}. Plants: ${collectionList.length}`);
-    
     if (!window.confirm(`WARNING: This will delete the ENTIRE collection "${collectionName}" and ALL ${collectionList.length} plants inside it. Are you sure?`)) {
         return;
     }
 
-    const token = localStorage.getItem('supabase.token');
-    
     try {
-        const response = await fetch(`http://localhost:5000/api/v1/collections/container/${encodeURIComponent(collectionName)}`, {
+        const response = await authenticatedFetch(`/collections/container/${encodeURIComponent(collectionName)}`, {
             method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
         });
 
         if (response.ok) {
@@ -164,6 +212,9 @@ const handleDeleteCollectionContainer = async (collectionName, collections, refr
         }
 
     } catch (e) {
+        if (e.message.includes('Session expired')) {
+            return;
+        }
         console.error('Frontend collection delete error:', e);
         alert('A network error occurred while trying to delete the collection.');
     }
@@ -173,13 +224,10 @@ const handleDeleteCollectionContainer = async (collectionName, collections, refr
 // --- Main Collections Page Component ---
 
 export default function CollectionsPage() {
-    const { collections, isLoading, error, userId, refreshCollections } = useCollections(); 
+    const { collections, isLoading, error, userId, refreshCollections, renameCollection } = useCollections();
     const router = useRouter();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // DEBUG LOG
-    console.log('📄 CollectionsPage rendering. userId:', userId, 'collections:', Object.keys(collections));
-    
     const handleAddCollection = () => {
         if (!userId) {
              alert('Please sign in to add collections.');
@@ -241,13 +289,14 @@ export default function CollectionsPage() {
             ) : (
                 <div style={styles.collectionsGrid}>
                     {collectionNames.map(name => (
-                        <CollectionCard 
-                            key={name} 
-                            name={name} 
-                            plants={collections[name]} 
+                        <CollectionCard
+                            key={name}
+                            name={name}
+                            plants={collections[name]}
                             router={router}
-                            onDelete={(plantId, commonName) => handleDeletePlant(plantId, commonName, refreshCollections)} 
-                            onDeleteCollection={(collectionName) => handleDeleteCollectionContainer(collectionName, collections, refreshCollections)} 
+                            onDelete={(plantId, commonName) => handleDeletePlant(plantId, commonName, refreshCollections)}
+                            onDeleteCollection={(collectionName) => handleDeleteCollectionContainer(collectionName, collections, refreshCollections)}
+                            onRename={renameCollection}
                         />
                     ))}
                 </div>
@@ -259,22 +308,16 @@ export default function CollectionsPage() {
 
 // --- Helper Component: Collection Management Menu ---
 
-const CollectionSettingsMenu = ({ collectionName, onDeleteCollection }) => { 
+const CollectionSettingsMenu = ({ collectionName, onDeleteCollection, onRenameClick }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isButtonHovered, setIsButtonHovered] = useState(false);
     const buttonRef = useRef(null);
     const wrapperRef = useRef(null); // New ref for the entire wrapper
 
-    // DEBUG: Component mount
-    useEffect(() => {
-        console.log(`⚙️ CollectionSettingsMenu mounted for: "${collectionName}"`);
-    }, [collectionName]);
-
     // Close menu when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
-                console.log('Click outside detected, closing menu');
                 setIsOpen(false);
             }
         };
@@ -288,14 +331,15 @@ const CollectionSettingsMenu = ({ collectionName, onDeleteCollection }) => {
         };
     }, [isOpen]);
 
-    const handleAction = (event, action, isDelete = false) => {
-        console.log(`🎯 [MENU ACTION] Executing: ${action}. Is Delete: ${isDelete}`);
+    const handleAction = (event, action, isDelete = false, isRename = false) => {
         event.preventDefault();
         event.stopPropagation();
         setIsOpen(false);
-        
+
         if (isDelete) {
             onDeleteCollection(collectionName);
+        } else if (isRename) {
+            onRenameClick(collectionName);
         } else {
             alert(`${action} collection: ${collectionName}`);
         }
@@ -305,16 +349,11 @@ const CollectionSettingsMenu = ({ collectionName, onDeleteCollection }) => {
         const [isHovered, setIsHovered] = useState(false);
         
         return (
-            <div 
+            <div
                 onClick={(e) => {
-                    console.log(`🖱️ MenuItem clicked: "${label}"`);
-                    console.log('Event object:', e);
-                    console.log('Calling onClick handler...');
                     onClick(e);
-                    console.log('onClick handler called');
-                }} 
+                }}
                 onMouseEnter={() => {
-                    console.log(`👆 Mouse entered: "${label}"`);
                     setIsHovered(true);
                 }}
                 onMouseLeave={() => setIsHovered(false)}
@@ -333,22 +372,19 @@ const CollectionSettingsMenu = ({ collectionName, onDeleteCollection }) => {
     };
 
     return (
-        <div 
+        <div
             ref={wrapperRef}
             style={styles.settingsWrapper}
             onClick={(e) => {
-                console.log('Wrapper clicked');
                 e.stopPropagation();
-            }} 
+            }}
         >
-            <button 
+            <button
                 onClick={(e) => {
                     e.stopPropagation();
-                    console.log('⚙️ Settings button clicked, isOpen:', !isOpen);
                     setIsOpen(!isOpen);
-                }} 
+                }}
                 onMouseEnter={() => {
-                    console.log('👆 Mouse entered settings button');
                     setIsButtonHovered(true);
                 }}
                 onMouseLeave={() => setIsButtonHovered(false)}
@@ -364,10 +400,10 @@ const CollectionSettingsMenu = ({ collectionName, onDeleteCollection }) => {
             </button>
             {isOpen && (
                 <div style={styles.settingsDropdown}>
-                    <MenuItem 
-                        icon={LuPencil} 
-                        label="Rename Collection" 
-                        onClick={(e) => handleAction(e, 'Rename')} 
+                    <MenuItem
+                        icon={LuPencil}
+                        label="Rename Collection"
+                        onClick={(e) => handleAction(e, 'Rename', false, true)}
                     />
                     <MenuItem 
                         icon={LuArchive} 
@@ -395,10 +431,15 @@ const CollectionSettingsMenu = ({ collectionName, onDeleteCollection }) => {
 
 // --- Helper Component: Collection Card ---
 
-const CollectionCard = ({ name, plants, router, onDelete, onDeleteCollection }) => {
-    
+const CollectionCard = ({ name, plants, router, onDelete, onDeleteCollection, onRename }) => {
+    const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+
     const displayList = plants.filter(p => p.common_name && Object.keys(p.plant_details_json || {}).length > 0);
     const count = displayList.length;
+
+    const handleRenameClick = () => {
+        setIsRenameModalOpen(true);
+    };
 
     const PlantItem = ({ plant, index }) => {
         const details = plant.plant_details_json;
@@ -459,14 +500,23 @@ const CollectionCard = ({ name, plants, router, onDelete, onDeleteCollection }) 
 
     return (
         <div style={styles.collectionCard}>
+            {isRenameModalOpen && (
+                <RenameCollectionModal
+                    currentName={name}
+                    onClose={() => setIsRenameModalOpen(false)}
+                    onRename={onRename}
+                />
+            )}
+
             <div style={styles.cardHeader}>
                 <h3 style={styles.cardTitle}>{name} ({count} plants)</h3>
                 <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-                    
+
                     <button style={styles.viewAllButton}>View All</button>
-                    <CollectionSettingsMenu 
-                        collectionName={name} 
+                    <CollectionSettingsMenu
+                        collectionName={name}
                         onDeleteCollection={onDeleteCollection}
+                        onRenameClick={handleRenameClick}
                     />
                 </div>
             </div>
@@ -748,6 +798,7 @@ const styles = {
     },
     loading: { textAlign: 'center', paddingTop: '3rem', fontSize: '1.2rem', },
     errorContainer: { textAlign: 'center', paddingTop: '3rem', color: RED_ERROR, },
+    errorBox: { backgroundColor: '#FEE2E2', color: RED_ERROR, padding: '0.75rem', borderRadius: '0.5rem', marginBottom: '1rem', fontSize: '0.9rem', border: `1px solid ${RED_ERROR}`, },
     signInButton: { backgroundColor: RED_ERROR, color: 'white', border: 'none', padding: '10px 20px', borderRadius: '0.5rem', marginTop: '1rem', cursor: 'pointer', },
     emptyState: { textAlign: 'center', padding: '3rem', border: `2px dashed ${GRAY_BORDER}`, borderRadius: '1rem', marginTop: '2rem', },
     searchButton: { backgroundColor: GREEN_PRIMARY, color: 'white', border: 'none', padding: '10px 20px', borderRadius: '0.5rem', marginTop: '1rem', cursor: 'pointer', }

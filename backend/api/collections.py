@@ -228,6 +228,71 @@ def delete_collection_container_route(collection_name):
                         " container due to server error."}), 500
 
 
+@collections_bp.route('/collections/rename', methods=['PUT'])
+@token_required
+def rename_collection_route():
+    """
+    Renames a collection for the authenticated user.
+    Requires: Valid JWT, JSON body with old_name and new_name.
+    """
+    user_id = request.user_id
+    data = request.get_json()
+
+    old_name = data.get('old_name')
+    new_name = data.get('new_name')
+
+    # Input validation
+    if not old_name or not new_name:
+        return jsonify({
+            "error": "Missing old_name or new_name in request body."
+        }), 400
+
+    # Trim whitespace from names
+    old_name = old_name.strip()
+    new_name = new_name.strip()
+
+    if not new_name:
+        return jsonify({
+            "error": "New collection name cannot be empty."
+        }), 400
+
+    if old_name == new_name:
+        return jsonify({
+            "error": "New name must be different from old name."
+        }), 400
+
+    try:
+        # Call the database service to perform the rename
+        result = db_service.rename_collection(user_id, old_name, new_name)
+
+        if result['status'] == 'success':
+            # Check if any rows were actually updated
+            if isinstance(result.get('data'), list) and len(result['data']) > 0:
+                return jsonify({
+                    "status": "success",
+                    "message": f"Collection renamed from '{old_name}' to '{new_name}'."
+                }), 200
+            else:
+                return jsonify({
+                    "status": "error",
+                    "message": f"Collection '{old_name}' not found."
+                }), 404
+
+        # Handle duplicate name error
+        if result.get('code') == 'duplicate_name':
+            return jsonify(result), 409
+
+        # Handle other errors
+        return jsonify(result), 500
+
+    except Exception as e:
+        print(f"Collection Rename Error: {e}")
+        return jsonify({
+            "status": "error",
+            "message": "Failed to rename collection due to server error."
+        }), 500
+
+
 @collections_bp.route('/collections/<string:plant_id>', methods=['DELETE'])
 @token_required
 def delete_from_collection_route(plant_id):

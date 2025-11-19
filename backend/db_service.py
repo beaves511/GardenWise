@@ -275,6 +275,49 @@ def delete_collection_container(user_id, collection_name: str):
 
     return _handle_supabase_query(query_func)
 
+
+def rename_collection(user_id: str, old_name: str, new_name: str):
+    """
+    Renames a collection by updating the collection_name field.
+    Verifies the collection exists for the user and that the new name
+    doesn't already exist.
+    """
+    # First, check if the new name already exists
+    def check_new_name_func():
+        return (
+            supabase
+            .table('collections')
+            .select('id')
+            .eq('user_id', user_id)
+            .eq('collection_name', new_name)
+            .limit(1)
+            .execute()
+        )
+
+    check_result = _handle_supabase_query(check_new_name_func)
+
+    # If the new name already exists, return error
+    if check_result['status'] == 'success':
+        return {
+            "status": "error",
+            "message": f"A collection named '{new_name}' already exists.",
+            "code": "duplicate_name"
+        }
+
+    # Now perform the rename
+    def query_func():
+        return (
+            supabase
+            .table('collections')
+            .update({'collection_name': new_name})
+            .eq('user_id', user_id)
+            .eq('collection_name', old_name)
+            .execute()
+        )
+
+    return _handle_supabase_query(query_func)
+
+
 def create_forum_post(user_id: str, title: str, content: str):
     """
     Inserts a new post into the forum_posts table.

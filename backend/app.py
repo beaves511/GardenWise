@@ -60,6 +60,14 @@ except ImportError as e:
     print(f"Forum Blueprint failed to import. Details: {e}")
     forum_bp = Blueprint('forum', __name__)
 
+try:
+    from api.profile import profile_bp
+    PROFILE_BP_LOADED = True
+except ImportError as e:
+    PROFILE_BP_LOADED = False
+    print(f"Profile Blueprint failed to import. Details: {e}")
+    profile_bp = Blueprint('profile', __name__)
+
 # Initialize Flask App
 app = Flask(__name__)
 # Configure CORS to allow requests from Next.js (port 3000)
@@ -96,6 +104,11 @@ if FORUM_BP_LOADED:
     app.register_blueprint(forum_bp, url_prefix='/api/v1')
 else:
     print("Forum Blueprint not loaded. Forum endpoints are unavailable.")
+
+if PROFILE_BP_LOADED:
+    app.register_blueprint(profile_bp, url_prefix='/api/v1')
+else:
+    print("Profile Blueprint not loaded. Profile endpoints are unavailable.")
 
 @app.route('/api/v1/test-db', methods=['POST'])
 def test_db_insert():

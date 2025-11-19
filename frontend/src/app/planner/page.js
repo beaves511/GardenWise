@@ -71,10 +71,19 @@ export default function AIPlannerPage() {
         }
         if (response) {
             // Success case: Apply default/success border color
+            // Format the response with proper line breaks and spacing
+            const formattedResponse = response.split('\n').map((line, idx) => (
+                <div key={idx} style={styles.responseLine}>
+                    {line || '\u00A0'} {/* Non-breaking space for empty lines */}
+                </div>
+            ));
+
             return (
                 <div style={{...baseStyle, borderColor: styles.GRAY_BORDER, backgroundColor: styles.GRAY_LIGHT}}>
-                    <LuLayoutList size={20} style={{marginRight: '10px', color: styles.GREEN_PRIMARY}} />
-                    <pre style={styles.preformattedText}>{response}</pre>
+                    <LuLayoutList size={20} style={{marginRight: '10px', flexShrink: 0, color: styles.GREEN_PRIMARY}} />
+                    <div style={styles.responseContent}>
+                        {formattedResponse}
+                    </div>
                 </div>
             );
         }
@@ -165,11 +174,16 @@ const styles = {
         whiteSpace: 'pre-wrap', // Preserve whitespace/formatting
         minHeight: '150px',
     },
-    preformattedText: {
-        fontFamily: 'monospace',
-        whiteSpace: 'pre-wrap',
-        margin: 0,
+    responseContent: {
         flexGrow: 1,
+        fontFamily: 'inherit',
+        fontSize: '1rem',
+        lineHeight: '1.6',
+        color: '#1F2937',
+    },
+    responseLine: {
+        marginBottom: '0.5rem',
+        wordWrap: 'break-word',
     },
     form: {
         display: 'flex',

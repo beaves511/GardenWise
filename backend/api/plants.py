@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 # Import the service directly for public plant search logic
-from plant_service import fetch_and_cache_plant_details
+from plant_service import fetch_and_cache_plant_details, fetch_plant_by_type
 # import os
 
 # Define the new Blueprint. This handles all public /plants routes.
@@ -12,23 +12,31 @@ def public_plant_search():
     """
     Handles GET requests for publicly viewable plant search results.
     This route does NOT require the @token_required decorator.
-    e.g., /api/v1/plants?name=Fern
+    e.g., /api/v1/plants?name=Fern&type=indoor
+    or   /api/v1/plants?name=Oak&type=other
     """
     plant_name = request.args.get('name')
+    plant_type = request.args.get('type', 'indoor')  # Default to 'indoor'
 
     if not plant_name:
         return jsonify({"message": "Missing 'name' query parameter."}), 400
 
-    print(f"--- PUBLIC SEARCH HIT --- Searching for: '{plant_name}'")
+    # Validate plant_type
+    if plant_type not in ['indoor', 'other']:
+        return jsonify({
+            "message": "Invalid 'type' parameter. Must be 'indoor' or 'other'."
+        }), 400
 
-    # Check if the service layer is available (assuming plant_service loads)
-    if 'fetch_and_cache_plant_details' not in globals():
+    print(f"--- PUBLIC SEARCH HIT --- Searching for: '{plant_name}' (type: {plant_type})")
+
+    # Check if the service layer is available
+    if 'fetch_plant_by_type' not in globals():
         return jsonify({"message": "Server Initialization Error: Plant "
                         "service is not running."}), 500
 
     try:
-        # Call the external service layer to get the data list
-        data = fetch_and_cache_plant_details(plant_name)
+        # Call the external service layer to get the data
+        data = fetch_plant_by_type(plant_name, plant_type)
 
         if data:
             return jsonify(data), 200

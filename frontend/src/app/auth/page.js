@@ -23,7 +23,8 @@ export default function AuthPage() {
     const isSignupUrl = searchParams.get('type') === 'signup';
     
     // We must initialize the state based on the URL check.
-    const [isLoginMode, setIsLoginMode] = useState(!isSignupUrl); 
+    const [isLoginMode, setIsLoginMode] = useState(!isSignupUrl);
+    const [sessionExpiredMsg, setSessionExpiredMsg] = useState(null);
 
     // Consume the ViewModel hook
     const {
@@ -35,6 +36,17 @@ export default function AuthPage() {
         error,
         handleAuth,
     } = useAuthForm();
+
+    // Check for session expired message on mount
+    useEffect(() => {
+        const expiredMessage = sessionStorage.getItem('sessionExpiredMessage');
+        if (expiredMessage) {
+            setSessionExpiredMsg(expiredMessage);
+            sessionStorage.removeItem('sessionExpiredMessage');
+            // Clear the message after 5 seconds
+            setTimeout(() => setSessionExpiredMsg(null), 5000);
+        }
+    }, []);
 
     // --- CRITICAL FIX: Pass the current mode to handleAuth ---
     const handleLocalAuthSubmit = (e) => {
@@ -77,6 +89,13 @@ export default function AuthPage() {
                         "Create your free account to start tracking your garden."
                     }
                 </p>
+
+                {/* Display Session Expired Message */}
+                {sessionExpiredMsg && (
+                    <div style={styles.infoBox}>
+                        {sessionExpiredMsg}
+                    </div>
+                )}
 
                 {/* Display Error Message */}
                 {error && (
@@ -198,6 +217,15 @@ const styles = {
         backgroundColor: '#FEF2F2',
         color: RED_ERROR,
         border: `1px solid ${RED_ERROR}`,
+        padding: '0.75rem',
+        borderRadius: '0.5rem',
+        marginBottom: '1rem',
+        fontSize: '0.9rem',
+    },
+    infoBox: {
+        backgroundColor: '#DBEAFE',
+        color: '#1E40AF',
+        border: '1px solid #3B82F6',
         padding: '0.75rem',
         borderRadius: '0.5rem',
         marginBottom: '1rem',
